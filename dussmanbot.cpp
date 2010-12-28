@@ -65,15 +65,33 @@ char* find(const char inputfile[], const char searchstring[])
     {
         if (c =='\n') numlines++;
     }
-    //printf("42"); //now it works --> go to toilet
-    //printf("%d", numlines );
-    //printf("42");
-    return 0;
+    printf("%d\n",numlines);
+    fclose(INPUT);
 
-//    char* lines[numlines][];
+
+   
+
+    //printf("%d", numlines ); now it works --> go to toilet
+
+    INPUT=fopen(inputfile,"r");
+    char** lines;
+    lines = (char **)calloc(numlines, sizeof (char *));
+    for(int i = 0; i < numlines; i++)
+    {
+        lines[i] = (char*)malloc(sizeof(char*));
+        fgets(lines[i], 99, INPUT);
+        printf("%s",lines[i]);
+    }    //HOLY Shit: It WORKS!
+
+
+//    INPUT=fopen(inputfile, "r");
+//    char stringtest[100];
 //    for (int i=1; i<=numlines;i++)
 //    {
-//        fgets(lines[i][], sizeof(lines[i]), INPUT);
+//        fgets(stringtest, 99, INPUT); !!!!THIS works... use it as example
+//        printf("%s",stringtest);
 //    }
+//     fclose(INPUT);
+//     return 0;//alles crap--> nochma nachschauen wegen array of chars
 
 }
