@@ -7,14 +7,20 @@
 #include<memory.h>
 
 char* cut(char* input, const char* delim, int fieldstart, int fieldstop);
-
+char* find(const char inputfile[], const char searchstring[]);
 int main()
 {
-    char text[]="Guten Tag";
-    char *cutten=cut(text,"t",2,4);
-    printf("%s\n",cutten);
+    //char text[]="Guten Tag";
+    //char *cutten=cut(text,"t",2,4);
+    find("testfile" , "Ent");
+    //printf("%s\n",cutten);
 }
 
+
+/******************************************************************************
+ * The following routine is for cutting strings, does not include the start or*
+ * end delimiter, but all characters that are between them                    *
+ ******************************************************************************/
 char* cut(char input[], const char delim[], int fieldstart, int fieldstop)
 {
     int counter=1;
@@ -43,4 +49,31 @@ char* cut(char input[], const char delim[], int fieldstart, int fieldstop)
     }
     return output;
     free(output);
+}
+
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+
+char* find(const char inputfile[], const char searchstring[])
+{
+    FILE *INPUT; //File-Pointer
+    INPUT=fopen(inputfile, "rt");//Open File
+    if (INPUT==NULL) printf("Error!");
+    int numlines=0;
+    char c;
+    while( (c=fgetc(INPUT)) != EOF)
+    {
+        if (c =='\n') numlines++;
+    }
+    //printf("42"); //now it works --> go to toilet
+    //printf("%d", numlines );
+    //printf("42");
+    return 0;
+
+//    char* lines[numlines][];
+//    for (int i=1; i<=numlines;i++)
+//    {
+//        fgets(lines[i][], sizeof(lines[i]), INPUT);
+//    }
+
 }
