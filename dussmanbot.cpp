@@ -12,7 +12,7 @@ int main()
 {
     //char text[]="Guten Tag";
     //char *cutten=cut(text,"t",2,4);
-    find("testfile" , "Ent");
+    find("testfile" , "ent");
     //printf("%s\n",cutten);
 }
 
@@ -67,10 +67,6 @@ char* find(const char inputfile[], const char searchstring[])
     }
     printf("%d\n",numlines);
     fclose(INPUT);
-
-
-   
-
     //printf("%d", numlines ); now it works --> go to toilet
 
     INPUT=fopen(inputfile,"r");
@@ -78,10 +74,65 @@ char* find(const char inputfile[], const char searchstring[])
     lines = (char **)calloc(numlines, sizeof (char *));
     for(int i = 0; i < numlines; i++)
     {
-        lines[i] = (char*)malloc(sizeof(char*));
-        fgets(lines[i], 99, INPUT);
-        printf("%s",lines[i]);
-    }    //HOLY Shit: It WORKS!
+        lines[i] = (char*)malloc(2000*sizeof(char*));
+        fgets(lines[i],2000 , INPUT);
+    }   //HOLY Shit: It WORKS! --> Implement finding a substring in those lines
+    //putchar(lines[4][96]);
+
+    int foundlines[numlines];
+    for(int i = 0; i< numlines; i++)
+    {
+        puts("phasezero");
+        int position;
+        position=0;
+        int found=0;
+
+        while(position <= (strlen(lines[i])-strlen(searchstring)))
+        {
+            puts("phase1");
+
+            if( searchstring[position] == lines[i][position])
+            {
+                puts("phase2");
+                int stillok=1;
+                for(int j=0; j<strlen(searchstring);j++)
+                {
+                    puts("phase3");
+                    if(stillok)
+                    {
+                        puts("phase4");
+                        if(searchstring[position+j]== lines[i][position+j])
+                        {
+                            puts("phase5");
+                            stillok=1;
+                        }else
+                        {
+                            puts("phase6");
+                            stillok=0;
+                            position++; //if not we'd have an infinite loop
+                            break;
+                        }
+                    }
+
+
+                    if((stillok) && j==strlen(searchstring)-1)
+                    {
+                        puts("phase7");
+                        found=1;
+                        foundlines[i]=1; //ab zum nächsten
+                        printf("%s",lines[i]);
+                        position++;
+                    }
+                }
+
+            } else {puts("phase8"); position++ ;}
+            
+            if (found) {puts("phase9"); break;}
+
+        }
+        //irgendwo,irgendwie die gefundenen zeilen speichern, sodass andere fkt.
+        //darauf zugreifen können.
+    }
 
 
 //    INPUT=fopen(inputfile, "r");
