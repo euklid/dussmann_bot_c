@@ -82,32 +82,33 @@ char* find(const char inputfile[], const char searchstring[])
     int foundlines[numlines];
     for(int i = 0; i< numlines; i++)
     {
-        puts("phasezero");
+        //puts("phasezero");
         int position;
         position=0;
         int found=0;
 
         while(position <= (strlen(lines[i])-strlen(searchstring)))
         {
-            puts("phase1");
+          //  puts("phase1");
+            //puts("Das ist der Searchstring:");putchar(searchstring[0]);puts("");
 
-            if( searchstring[position] == lines[i][position])
+            if( searchstring[0] == lines[i][position])
             {
-                puts("phase2");
+              //  puts("phase2");
                 int stillok=1;
                 for(int j=0; j<strlen(searchstring);j++)
                 {
-                    puts("phase3");
+                //    puts("phase3");
                     if(stillok)
                     {
-                        puts("phase4");
-                        if(searchstring[position+j]== lines[i][position+j])
+                  //      puts("phase4");
+                        if(searchstring[j]== lines[i][position+j])
                         {
-                            puts("phase5");
+                    //        puts("phase5");
                             stillok=1;
                         }else
                         {
-                            puts("phase6");
+                      //      puts("phase6");
                             stillok=0;
                             position++; //if not we'd have an infinite loop
                             break;
@@ -117,7 +118,7 @@ char* find(const char inputfile[], const char searchstring[])
 
                     if((stillok) && j==strlen(searchstring)-1)
                     {
-                        puts("phase7");
+                        //puts("phase7");
                         found=1;
                         foundlines[i]=1; //ab zum nächsten
                         printf("%s",lines[i]);
@@ -125,9 +126,11 @@ char* find(const char inputfile[], const char searchstring[])
                     }
                 }
 
-            } else {puts("phase8"); position++ ;}
+            } else {//puts("phase8");
+                    position++ ;}
             
-            if (found) {puts("phase9"); break;}
+            if (found) {//puts("phase9");
+                        break;}
 
         }
         //irgendwo,irgendwie die gefundenen zeilen speichern, sodass andere fkt.
