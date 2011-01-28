@@ -6,8 +6,33 @@
 #include<malloc.h>
 #include<memory.h>
 
+/*
+ * TODO:    grep -A (lines after found)
+ *
+ *          cut -c foo   the first foo characs 
+ *
+ *          tail selbiges wie unten???
+ *
+ *          head geht das nicht mit verschieben des Lesepointers????
+ *
+ *          curl :DONE
+ *
+ *          cat -b and cat -n (number first: non-blank lines, second: all lines)
+ *          is cut -f3- <-- the minus   already implement??? test it!
+ *
+ *          learn how to add lines to a file and how to create a file :DONE
+ *
+ *          add rating of food if no rating was there including making new
+ *          groups and adding food to this groups
+ *
+ *          extracting the parts of food and find the value for it and getting
+ *          the best food for the day by comparing the sums
+ *
+ */
+
 char* cut(char* input, const char* delim, int fieldstart, int fieldstop);
-char* find(const char inputfile[], const char searchstring[]);
+char* find(const char inputfile[], const char searchstring[], int linesafter=0);
+FILE* findfile;
 int main()
 {
     //char text[]="Guten Tag";
@@ -54,11 +79,12 @@ char* cut(char input[], const char delim[], int fieldstart, int fieldstop)
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 
-char* find(const char inputfile[], const char searchstring[])
+char* find(const char inputfile[], const char searchstring[], int linesafter=1)
 {
     FILE *INPUT; //File-Pointer
     INPUT=fopen(inputfile, "rt");//Open File
     if (INPUT==NULL) printf("Error!");
+
     int numlines=0;
     char c;
     while( (c=fgetc(INPUT)) != EOF)
@@ -121,7 +147,7 @@ char* find(const char inputfile[], const char searchstring[])
                         //puts("phase7");
                         found=1;
                         foundlines[i]=1; //ab zum nächsten
-                        printf("%s",lines[i]);
+                        //printf("%s",lines[i]);
                         position++;
                     }
                 }
@@ -133,9 +159,34 @@ char* find(const char inputfile[], const char searchstring[])
                         break;}
 
         }
+        //nun auf den linesafter Parameter eingehen
+        for(int i=0; i< numlines; i++)
+        {
+            if (foundlines[i]==1)
+            {
+                for(int j=0; i<=linesafter; j++)
+                {
+                    foundlines[i+j]=2;
+                }
+            }
+        }
+
+        findfile=fopen("findoutput","w");
+        for(int i=0; i<numlines;i++)
+        {
+            if((foundlines[i]==1) || (foundlines[i]==2))
+            {
+                fputs(lines[i],findfile);
+            }
+        }
+        findfile=fclose();
+
         //irgendwo,irgendwie die gefundenen zeilen speichern, sodass andere fkt.
         //darauf zugreifen können.
+        free(lines);
+        free(*lines);
     }
+
 
 
 //    INPUT=fopen(inputfile, "r");
