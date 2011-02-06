@@ -7,9 +7,10 @@
 #include<memory.h>
 
 /*
- * TODO:    grep -A (lines after found)
+ * TODO:    grep -A (lines after found) :DONE Done
  *
- *          cut -c foo   the first foo characs 
+ *          cut -c foo   the first foo characs --> extra function, 'cause many
+ *          NULL pointers in cut needed :DONE Done
  *
  *          tail selbiges wie unten???
  *
@@ -18,26 +19,28 @@
  *          curl :DONE
  *
  *          cat -b and cat -n (number first: non-blank lines, second: all lines)
+ *
  *          is cut -f3- <-- the minus   already implement??? test it!
  *
  *          learn how to add lines to a file and how to create a file :DONE
  *
  *          add rating of food if no rating was there including making new
- *          groups and adding food to this groups
+ *          groups and adding food to this groups --> SEE CHANGED CONCEPT
  *
  *          extracting the parts of food and find the value for it and getting
  *          the best food for the day by comparing the sums
  *
  */
-
+char* frstnchr(char* input, int n);
 char* cut(char* input, const char* delim, int fieldstart, int fieldstop);
-char* find(const char inputfile[], const char searchstring[], int linesafter=0);
+int find(const char inputfile[], const char searchstring[], int linesafter=0);
 FILE* findfile;
 int main()
 {
     //char text[]="Guten Tag";
     //char *cutten=cut(text,"t",2,4);
-    find("testfile" , "ent");
+    find("testfile" , "ent",25);
+    //printf("%s\n",frstnchr(text,7));
     //printf("%s\n",cutten);
 }
 
@@ -46,6 +49,23 @@ int main()
  * The following routine is for cutting strings, does not include the start or*
  * end delimiter, but all characters that are between them                    *
  ******************************************************************************/
+char* frstnchr(char* input, int n)
+{
+    char* outputstr;
+    if(n>=strlen(input))
+    {
+        outputstr=(char*)malloc(sizeof(input));
+        outputstr=input;
+    }
+    else
+    {
+        outputstr=(char*)malloc(n+1);
+        for(int i=0;i<n;i++) outputstr[i]=input[i];
+    }
+    return outputstr;
+    free(outputstr);
+}
+
 char* cut(char input[], const char delim[], int fieldstart, int fieldstop)
 {
     int counter=1;
@@ -79,13 +99,14 @@ char* cut(char input[], const char delim[], int fieldstart, int fieldstop)
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 
-char* find(const char inputfile[], const char searchstring[], int linesafter=1)
+int find(const char inputfile[], const char searchstring[], int linesafter)
 {
     FILE *INPUT; //File-Pointer
     INPUT=fopen(inputfile, "rt");//Open File
     if (INPUT==NULL) printf("Error!");
 
     int numlines=0;
+    int everfound=0;
     char c;
     while( (c=fgetc(INPUT)) != EOF)
     {
@@ -106,6 +127,7 @@ char* find(const char inputfile[], const char searchstring[], int linesafter=1)
     //putchar(lines[4][96]);
 
     int foundlines[numlines];
+    for(int i=0;i< numlines;i++) foundlines[i]=0;
     for(int i = 0; i< numlines; i++)
     {
         //puts("phasezero");
@@ -115,26 +137,26 @@ char* find(const char inputfile[], const char searchstring[], int linesafter=1)
 
         while(position <= (strlen(lines[i])-strlen(searchstring)))
         {
-          //  puts("phase1");
+            //puts("phase1");
             //puts("Das ist der Searchstring:");putchar(searchstring[0]);puts("");
 
             if( searchstring[0] == lines[i][position])
             {
-              //  puts("phase2");
+                //puts("phase2");
                 int stillok=1;
                 for(int j=0; j<strlen(searchstring);j++)
                 {
-                //    puts("phase3");
+                    //puts("phase3");
                     if(stillok)
                     {
-                  //      puts("phase4");
+                        //puts("phase4");
                         if(searchstring[j]== lines[i][position+j])
                         {
-                    //        puts("phase5");
+                            //puts("phase5");
                             stillok=1;
                         }else
                         {
-                      //      puts("phase6");
+                          //  puts("phase6");
                             stillok=0;
                             position++; //if not we'd have an infinite loop
                             break;
@@ -145,6 +167,7 @@ char* find(const char inputfile[], const char searchstring[], int linesafter=1)
                     if((stillok) && j==strlen(searchstring)-1)
                     {
                         //puts("phase7");
+                        everfound=1;
                         found=1;
                         foundlines[i]=1; //ab zum nächsten
                         //printf("%s",lines[i]);
@@ -159,33 +182,50 @@ char* find(const char inputfile[], const char searchstring[], int linesafter=1)
                         break;}
 
         }
+    }
         //nun auf den linesafter Parameter eingehen
-        for(int i=0; i< numlines; i++)
+    for(int i=0; i< numlines; i++)
+    {
+        //printf("%i\n",foundlines[i]);
+        if (foundlines[i]==1)
         {
-            if (foundlines[i]==1)
+            if (i+linesafter<numlines)
             {
-                for(int j=0; i<=linesafter; j++)
+                for(int j=1; j<=linesafter; j++)
                 {
-                    foundlines[i+j]=2;
+                    if(foundlines[i+j]!=1) foundlines[i+j]=2;
+                }
+            }
+            else
+            {
+                for(int j=1; i+j<numlines;j++)
+                {
+                    if(foundlines[i+j]!=1) foundlines[i+j]=2;
                 }
             }
         }
 
-        findfile=fopen("findoutput","w");
-        for(int i=0; i<numlines;i++)
-        {
-            if((foundlines[i]==1) || (foundlines[i]==2))
-            {
-                fputs(lines[i],findfile);
-            }
-        }
-        findfile=fclose();
 
-        //irgendwo,irgendwie die gefundenen zeilen speichern, sodass andere fkt.
-        //darauf zugreifen können.
-        free(lines);
-        free(*lines);
     }
+
+    findfile=fopen("findoutput","w");
+    for(int i=0; i<numlines;i++)
+    {
+        //printf("%i\n",foundlines[i]);
+        if((foundlines[i]==1) || (foundlines[i]==2))
+        {
+            //puts("in file schreiben");
+            fputs(lines[i],findfile);
+        }
+    }
+    fclose(findfile);
+
+    //irgendwo,irgendwie die gefundenen zeilen speichern, sodass andere fkt.
+    //darauf zugreifen können. :DONE
+    free(lines);
+    free(*lines);
+    //printf("Das ist linesafter: %i\n",linesafter);
+    
 
 
 
@@ -198,5 +238,10 @@ char* find(const char inputfile[], const char searchstring[], int linesafter=1)
 //    }
 //     fclose(INPUT);
 //     return 0;//alles crap--> nochma nachschauen wegen array of chars
+    if(everfound)
+        return 1 ;
+    else 
+        return 0;
+
 
 }
