@@ -20,7 +20,7 @@
  *
  *          cat -b and cat -n (number first: non-blank lines, second: all lines)
  *
- *          is cut -f3- <-- the minus   already implement??? test it!
+ *          is cut -f3- <-- the minus   already implement??? test it! :DONE Done
  *
  *          learn how to add lines to a file and how to create a file :DONE
  *
@@ -31,24 +31,33 @@
  *          the best food for the day by comparing the sums
  *
  */
+char* frstln(const char inputfile[]);
+char* lstln(const char inputfile[]);
 char* frstnchr(char* input, int n);
 char* cut(char* input, const char* delim, int fieldstart, int fieldstop);
 int find(const char inputfile[], const char searchstring[], int linesafter=0);
 FILE* findfile;
 int main()
 {
-    //char text[]="Guten Tag";
-    //char *cutten=cut(text,"t",2,4);
+    char text[]="Guten Tag";
+    char *cutten=cut(text,"t",2,1);
     find("testfile" , "ent",25);
     //printf("%s\n",frstnchr(text,7));
-    //printf("%s\n",cutten);
+    printf("%s",frstln("testfile"));
+
 }
 
+char* frstln(const char inputfile[])
+{
+    FILE* input;
+    char* output=(char*)malloc(2000);
+    input=fopen(inputfile,"r");
+    if(input==NULL) return NULL;
+    fgets(output, 2000, input);
+    return output;
+    free(output);
+}
 
-/******************************************************************************
- * The following routine is for cutting strings, does not include the start or*
- * end delimiter, but all characters that are between them                    *
- ******************************************************************************/
 char* frstnchr(char* input, int n)
 {
     char* outputstr;
@@ -65,6 +74,11 @@ char* frstnchr(char* input, int n)
     return outputstr;
     free(outputstr);
 }
+
+/******************************************************************************
+ * The following routine is for cutting strings, does not include the start or*
+ * end delimiter, but all characters that are between them                    *
+ ******************************************************************************/
 
 char* cut(char input[], const char delim[], int fieldstart, int fieldstop)
 {
