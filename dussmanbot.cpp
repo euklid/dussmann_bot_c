@@ -23,7 +23,7 @@
  * 			 -- das kann man über eine einfache Funktion machen wie bei find und
  * 			so
  *
- *          is cut -f3- <-- the minus   already implement??? test it! :DONE Done
+ *          is cut -f3- <-- the minus   already implement??? test it! nope F I X M E
  *
  *          learn how to add lines to a file and how to create a file :DONE
  *
@@ -36,16 +36,20 @@
  */
 int loginandcookie(char* userid, char* passwd);
 int kalwochen(char* userid, char* passwd);
+void tagesauswahl();
 char* frstln(const char inputfile[]);
 char* lstln(const char inputfile[]);
 char* frstnchr(char* input, int n);
 char* cut(char* input, const char* delim, int fieldstart, int fieldstop);
 int find(const char inputfile[], const char searchstring[], int linesafter = 0);
 FILE* findfile;
+int startwoche=0, anzwoche=0;
+int** setdates;
 
 int main()
 {
 	char uid[5], pwd[5];
+
 	//char** slynmbwochen;
 	printf("Herzlich willkommen. Ich bin ihr persönlicher Essensberater!\n \n");
 	printf("Was ist ihre Benutzernummer: ");
@@ -55,6 +59,7 @@ int main()
 	//loginandcookie(uid,pwd);
 	////find("kalendera","<select name=\"sel_datum\" class=\"no_print\" onchange=\"document.form_sel_datum.submit()\">",12);
 	kalwochen(uid, pwd); 
+	tagesauswahl();
     //char text[] = "Guten Tagderefd\npens\0i";
     //char *cutten = cut(text, "t", 2, 2);
     //printf("%s",cutten);
@@ -141,14 +146,15 @@ char* frstnchr(char* input, int n)
 
 char* cut(char input[], const char delim[], int fieldstart, int fieldstop)
 {
+	
     int counter = 1;
     bool began = false;
-    char* output;
+    char* output;//free(output);
     int maxlength;
     int startpos=0;
     int charcount=0;
     int fldcount=1;
-    printf("stringlenge %i\n",strlen(input));
+    //printf("stringlenge %i\n",strlen(input));
     //output = (char*) malloc(strlen(input));
     int outputstart = -2;
     for(int i=0;i<strlen(input);i++)
@@ -156,12 +162,15 @@ char* cut(char input[], const char delim[], int fieldstart, int fieldstop)
 		if(input[i]==delim[0]) fldcount++;
 
 		if((fldcount>=fieldstart) && (fldcount<=fieldstop) && (input[i]!=delim[0])) charcount++;
-				if(input[i]<32) break;
+		if(input[i]<32) break;
 	}
-	printf("fotze %i\n",charcount);
-    output = (char*) malloc(charcount);
+
+	//printf("fotze %i\n",charcount);
+    output = (char*)malloc(sizeof(char*)*charcount);free(output);    output = (char*)malloc(sizeof(char*)*charcount);//printf("fotze %i\n",charcount);
+    //printf("Das ist outputs groeße: %i",sizeof(output));
     for (int i = 0; i < strlen(input); i++)
     {
+		//printf("%i \n",strlen(output));
         if (outputstart != -2) outputstart++;
         if ((input[i] == delim[0]))
         {
@@ -172,29 +181,27 @@ char* cut(char input[], const char delim[], int fieldstart, int fieldstop)
 			output[outputstart]='\0';
 			break;
 		}
-		if(i-charcount>startpos) {output[outputstart]='\0';break;}
-		if((input[i]=='\n') || (input[i]=='\0')){break; output[outputstart]=='\0';}
-		//if(outputstart+startpos>strlen(input))
-		//{
-			//output[outputstart]='\0'; break;
-		//}
-		//if(input[i]<=10) break;
+		if(i-charcount>startpos) { output[outputstart]='\0';break;}
+		if((input[i]=='\n') || (input[i]=='\0')){ output[outputstart]=='\0';break;}
 
         if ((counter == fieldstart) && (began == false))
         {
             began = true;
             startpos=i;
-            printf("startpos %i\n",startpos);
+            //printf("startpos %i\n",startpos);
             if (fieldstart != 1) outputstart = -1;
             if (fieldstart == 1) outputstart = 0;
         }
         if ((counter >= fieldstart) && (outputstart >= 0))
         {
             output[outputstart] = input[i];
+            
         }
+        //putchar(output[i-startpos-1]);
     }
+    //printf("Das ist outputslenge: %i",strlen(output));
     return output;
-    free(output);
+    
 }
 
 //------------------------------------------------------------------------------
@@ -390,8 +397,8 @@ int loginandcookie(char* userid, char* passwd)
 
 int kalwochen(char* userid, char* passwd)
 {
-	int numwochen=0;
-	int startwoche;
+	//int numwochen=0;
+	//int startwoche;
 	char* startwochenbuffer;
 	startwochenbuffer=(char*)malloc(sizeof(char*)*3);
 	FILE* wochenliste;
@@ -402,13 +409,13 @@ int kalwochen(char* userid, char* passwd)
 	char c;
 	while((c=fgetc(wochenliste)) != EOF)
 	{
-		if(c == '\n') numwochen++;
+		if(c == '\n') anzwoche++;
 	}
 	fclose(wochenliste);
-	printf("penis %s\n",cut(frstln("findoutput"),":",2,2));
+	//printf("penis %s\n",cut(frstln("findoutput"),":",2,2));
 	startwochenbuffer=cut(cut(frstln("findoutput"),":",2,2)," ",2,2);
 	//startwochenbuffer[1]+=4;
-	printf("pimmel %c\n",startwochenbuffer[1]);
+	//printf("pimmel %c\n",startwochenbuffer[1]);
 	for(int i=48; i<=53; i++)
 	{
 		if(startwochenbuffer[0]==i) 
@@ -425,8 +432,90 @@ int kalwochen(char* userid, char* passwd)
 			break;
 		}
 	}
-	printf("startwoche: %i und anzahlwochen: %i\n",startwoche,numwochen);
-	
-		
+	printf("startwoche: %i und anzahlwochen: %i\n",startwoche,anzwoche);	
+	return 1;		
 }
 
+void tagesauswahl()
+{
+	//puts("hallo");
+	setdates=(int**)calloc(anzwoche,sizeof(int*));
+	//puts("hi");
+	for(int i=0; i<anzwoche;i++) setdates[i]=(int*)calloc(7,sizeof(int));
+	//puts("hey");
+	char janein1=32, janein3[7]; for(int i=0;i<7;i++) janein3[i]=32;
+	char janein2=32;
+	//int lauf1=0, lauf2=0, lauf3[]={0,0,0,0,0,0,0};
+	char wochentage[][11]={"Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"};
+	for(int i=0; i<anzwoche; i++)
+	{
+		janein1=32; for(int f=0;f<7;f++) janein3[f]=32; janein2=32;
+		//puts("hallihallo");
+		printf("Willst du in der %i. Woche bestellen? Bitte nur j oder n eingeben:", startwoche+i);
+		//puts("keinbock");
+		do
+		{ 	//lauf1++;
+			//puts("keinelust");
+			//scanf("%c",&janein1);
+			getchar();
+			janein1=getchar(); //wait(5000);
+			
+			//puts("nanunana");
+			//if(lauf1==1)continue;
+			if(janein1=='n' || janein1=='j')
+			{
+				if(janein1=='n')
+				{
+					for(int j=0; j<7;j++)
+					{
+						setdates[i][j]=0;
+					}
+				} 
+				else
+				{
+					puts("Alles bestellen? Bitte nur j oder n eingeben:");
+					do
+					{
+						//lauf2++;
+						getchar();
+						scanf("%c",&janein2);//if(lauf2==1)continue;
+						//usw.
+						if((janein2=='n') || (janein2=='j'))
+						{
+							if(janein2=='j')
+							{
+								for(int j=0;j<7;j++)
+								{
+									setdates[i][j]=1;
+								}
+							}
+							else
+							{
+								for(int k=0; k<7; k++)
+								{
+									do
+									{
+										//lauf3[k]++;
+										printf("Für %s bestellen? Bitte nur j oder n eingeben.:",wochentage[k]);
+										getchar();
+										scanf("%c",&janein3[k]);
+										//if(lauf3[k]==1)continue;
+										if((janein3[k]=='n') || (janein3[k]=='j'))
+										{
+											if(janein3[k]=='j') setdates[i][k]=1;
+											else setdates[i][k]=0; 
+										} else puts("Falsche Eingabe! Nochmal bitte.");										
+									
+									}while((janein3[k]!='j') && (janein3[k]!='n'));
+								}
+							}
+							
+						} else puts("Falsche Eingabe! Nochmal bitte.");
+					}while((janein2!='n') && (janein2!='j'));
+				}
+				
+			} else puts("Falsche Eingabe! Nochmal bitte.");
+		}while((janein1!='n') && (janein1!='j')) ;
+	}
+	
+}
