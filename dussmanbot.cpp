@@ -54,10 +54,10 @@ int main()
 	scanf("%s",pwd);
 	//loginandcookie(uid,pwd);
 	////find("kalendera","<select name=\"sel_datum\" class=\"no_print\" onchange=\"document.form_sel_datum.submit()\">",12);
-	kalwochen(uid, pwd); //wat solls MEGA FICKEN.
-    char text[] = "Guten Tagderefd\npens\0i";
-    char *cutten = cut(text, "t", 2, 2);
-    printf("%s",cutten);
+	kalwochen(uid, pwd); 
+    //char text[] = "Guten Tagderefd\npens\0i";
+    //char *cutten = cut(text, "t", 2, 2);
+    //printf("%s",cutten);
     //find("testfile", "ent");
     ////printf("%s\n",frstnchr(text,7));
     //printf("%s", frstln("testfile"));
@@ -172,7 +172,7 @@ char* cut(char input[], const char delim[], int fieldstart, int fieldstop)
 			output[outputstart]='\0';
 			break;
 		}
-		if(i+1-charcount>startpos) {output[outputstart]='\0';break;}
+		if(i-charcount>startpos) {output[outputstart]='\0';break;}
 		if((input[i]=='\n') || (input[i]=='\0')){break; output[outputstart]=='\0';}
 		//if(outputstart+startpos>strlen(input))
 		//{
@@ -408,7 +408,7 @@ int kalwochen(char* userid, char* passwd)
 	printf("penis %s\n",cut(frstln("findoutput"),":",2,2));
 	startwochenbuffer=cut(cut(frstln("findoutput"),":",2,2)," ",2,2);
 	//startwochenbuffer[1]+=4;
-	//printf("pimmel %c\n",startwochenbuffer[0]);
+	printf("pimmel %c\n",startwochenbuffer[1]);
 	for(int i=48; i<=53; i++)
 	{
 		if(startwochenbuffer[0]==i) 
