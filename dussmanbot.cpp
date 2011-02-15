@@ -37,27 +37,28 @@
 int loginandcookie(char* userid, char* passwd);
 int kalwochen(char* userid, char* passwd);
 void tagesauswahl();
+void getsel_datums(char* userid, char* passwd);
 char* frstln(const char inputfile[]);
 char* lstln(const char inputfile[]);
 char* frstnchr(char* input, int n);
 char* cut(char* input, const char* delim, int fieldstart, int fieldstop);
+char* cut2(char inputstring[], char* delim, int fieldstart, int fieldstop);
 int find(const char inputfile[], const char searchstring[], int linesafter = 0);
 FILE* findfile;
 int startwoche=0, anzwoche=0;
-int** setdates;
+int** setdates; //Array, das speichert, für welche Tage bestellt werden soll.
+char** slynmbwochen; //Array, das Werte für sel_datum speichert, sodass bestellt werden kann.
 
 int main()
 {
 	char uid[5], pwd[5];
-
-	//char** slynmbwochen;
 	printf("Herzlich willkommen. Ich bin ihr persönlicher Essensberater!\n \n");
 	printf("Was ist ihre Benutzernummer: ");
 	scanf("%s",uid);
 	printf("Was ist ihr Passwort: ");
 	scanf("%s",pwd);
-	//loginandcookie(uid,pwd);
-	////find("kalendera","<select name=\"sel_datum\" class=\"no_print\" onchange=\"document.form_sel_datum.submit()\">",12);
+	loginandcookie(uid,pwd);
+	//////find("kalendera","<select name=\"sel_datum\" class=\"no_print\" onchange=\"document.form_sel_datum.submit()\">",12);
 	kalwochen(uid, pwd); 
 	tagesauswahl();
     //char text[] = "Guten Tagderefd\npens\0i";
@@ -81,15 +82,14 @@ char* frstln(const char inputfile[])
 //        charcount++;
 //    }
     rewind(input);
-    char* output = (char*) malloc(charcount * sizeof(char*));
+    char* output = (char*) malloc(charcount * sizeof(char));
     fgets(output, charcount, input);
     fclose(input);
     //printf("%s",output);
-    char* firstline=output;
-    //printf("%s",firstline);
-    free(output);
-    //printf("%s",firstline);
-    return firstline;
+	output[strlen(output)]='\0';
+	//printf("%i",strlen(output));
+	if(output[strlen(output)-1]=='\n') output[strlen(output)-1]='\0';
+	return output;
     
 }
 
@@ -127,13 +127,14 @@ char* frstnchr(char* input, int n)
     char* outputstr;
     if (n >= strlen(input))
     {
-        outputstr = (char*) malloc(sizeof (input));
+        outputstr = (char*) malloc(strlen(input)+1);
         outputstr = input;
     }
     else
     {
         outputstr = (char*) malloc(n + 1);
         for (int i = 0; i < n; i++) outputstr[i] = input[i];
+        outputstr[n]='\0';
     }
     return outputstr;
     free(outputstr);
@@ -144,7 +145,76 @@ char* frstnchr(char* input, int n)
  * end delimiter, but all characters that are between them                    *
  ******************************************************************************/
 
-char* cut(char input[], const char delim[], int fieldstart, int fieldstop)
+char* cut2(char inputstring[], char* delim, int fieldstart, int fieldstop)
+{
+	int fieldcount=1;
+	int fldstart=fieldstart, fldstop=fieldstop;
+	char* pch;
+	char** fields;
+	char* output;
+	int outputsize;
+	char inputcpy[strlen(inputstring)+1];
+	strcpy(inputcpy,inputstring);
+	//puts("hello");
+	pch=strtok(inputcpy, delim);
+	while (pch != NULL)
+	{
+		//printf("%s\n",pch);
+		pch = strtok (NULL,delim);
+		fieldcount++;
+		//printf("%i\n",fieldcount);
+	}
+	//puts("hillo");
+	fieldcount--;
+	//printf("%i",fieldcount);
+	if(fieldstop>fieldcount) fldstop=fieldcount;
+	if(fieldstart>fieldcount) return '\0';
+	if(fieldstart>fieldcount) return'\0';
+	if(fieldstart<=0) fldstart=1;
+	fields=(char**)calloc(fieldcount,sizeof(char*));
+	fieldcount=0;
+	//puts("hallo");
+	strcpy(inputcpy,inputstring);
+	//puts("hi");
+	pch=strtok(inputcpy,delim);
+	fields[0]=(char*)malloc(sizeof(char)*(strlen(pch)+1));
+	//puts("penis");
+	strcpy(fields[0],pch);
+	//printf("%s",fields[0]);
+	//puts("haha");
+	//printf("%s",fields[0]);
+	do
+	{
+		pch=strtok(NULL,delim);
+		fieldcount++;
+		if(pch!=NULL) 
+		{
+			fields[fieldcount]=(char*)malloc(sizeof(char)*(strlen(pch)+1));
+			strcpy(fields[fieldcount],pch);
+		}
+	}while(pch!= NULL);
+	outputsize=fieldstop-fieldstart+1;
+	for(int i=fldstart-1; i<fldstop;i++)
+	{
+		//printf("%s\n",fields[i]);
+		outputsize+=strlen(fields[i]);
+	}
+	//printf("%i",outputsize);
+	//puts("foo");
+	//puts("bar");
+	output=(char*)malloc(outputsize); 
+	strcpy(output,fields[fldstart-1]);if(fldstart<fldstop) strcat(output,delim);
+	for(int i=fldstart; i<fldstop-1;i++)
+	{
+		strcat(output,fields[i]);strcat(output,delim);	
+	}
+	strcat(output,fields[fldstop-1]);
+	output[outputsize-1]='\0';
+	free(fields);
+	return output;	
+}
+
+char* cut(char input[], const char delim[], int fieldstart, int fieldstop) // ICH bin im Arsch --> nun mit strtok schreiben!
 {
 	
     int counter = 1;
@@ -381,7 +451,7 @@ int loginandcookie(char* userid, char* passwd)
 	curl_easy_setopt(hnd, CURLOPT_WRITEDATA, essen);
 	curl_easy_setopt(hnd, CURLOPT_INFILESIZE_LARGE, -1);
 	curl_easy_setopt(hnd, CURLOPT_URL, "http://www.dussmann-lpf.rcs.de/index.php?m=1;3&a=akt_login");
-	curl_easy_setopt(hnd, CURLOPT_PROXY, NULL);
+	curl_easy_setopt(hnd, CURLOPT_PROXY, "192.168.0.1:3128");
 	curl_easy_setopt(hnd, CURLOPT_PROXYUSERPWD, NULL); 
 	curl_easy_setopt(hnd, CURLOPT_POSTFIELDS, postfield);
  	curl_easy_setopt(hnd, CURLOPT_USERAGENT, "Mozilla/5.0 (X11; U; Linux i686; de; rv:1.9.2.12) Gecko/20101027 Firefox/3.6.12");
@@ -400,11 +470,12 @@ int kalwochen(char* userid, char* passwd)
 	//int numwochen=0;
 	//int startwoche;
 	char* startwochenbuffer;
-	startwochenbuffer=(char*)malloc(sizeof(char*)*3);
+	startwochenbuffer=(char*)malloc(sizeof(char*)*4);
 	FILE* wochenliste;
 	//if(kalender==NULL) return 0;
 	find("kalendera","<select name=\"sel_datum\" class=\"no_print\" onchange=\"document.form_sel_datum.submit()\">",12);
 	find("findoutput","KW");
+	find("findoutput","selected=\"selected\"",12);
 	wochenliste=fopen("findoutput","r");
 	char c;
 	while((c=fgetc(wochenliste)) != EOF)
@@ -412,13 +483,23 @@ int kalwochen(char* userid, char* passwd)
 		if(c == '\n') anzwoche++;
 	}
 	fclose(wochenliste);
-	//printf("penis %s\n",cut(frstln("findoutput"),":",2,2));
-	startwochenbuffer=cut(cut(frstln("findoutput"),":",2,2)," ",2,2);
+	//wochenliste=fopen("findoutput","r");
+	char* buffer=(char*)malloc(150);
+	puts("test");
+	//fgets(buffer,130,wochenliste);
+	//buffer[strlen(buffer)-1]='\0';
+	buffer=frstln("findoutput");
+	printf("%s\n",buffer);
+	buffer=cut2(buffer,":",2,2);	
+	//fclose(wochenliste);
+	printf("%s \n",buffer);
+	startwochenbuffer=frstnchr(buffer,3);
+	printf("buffer is %s\n",startwochenbuffer);
 	//startwochenbuffer[1]+=4;
 	//printf("pimmel %c\n",startwochenbuffer[1]);
 	for(int i=48; i<=53; i++)
 	{
-		if(startwochenbuffer[0]==i) 
+		if(startwochenbuffer[1]==i) 
 		{
 			startwoche=10*(i-48);
 			break;
@@ -426,23 +507,27 @@ int kalwochen(char* userid, char* passwd)
 	}
 	for(int i=48;i<=57; i++)
 	{
-		if(startwochenbuffer[1]==i)
+		if(startwochenbuffer[2]==i)
 		{
 			startwoche+=(i-48);
 			break;
 		}
 	}
-	printf("startwoche: %i und anzahlwochen: %i\n",startwoche,anzwoche);	
+	printf("startwoche: %i und anzahlwochen: %i\n",startwoche,anzwoche);
+	//free(buffer);
+	free(startwochenbuffer)	;
 	return 1;		
 }
 
 void tagesauswahl()
 {
 	//puts("hallo");
-	setdates=(int**)calloc(anzwoche,sizeof(int*));
-	//puts("hi");
-	for(int i=0; i<anzwoche;i++) setdates[i]=(int*)calloc(7,sizeof(int));
-	//puts("hey");
+	//setdates=(int**)calloc(anzwoche,sizeof(int*));
+	int setdates[anzwoche][7];
+	puts("hi");
+	//for(int i=0; i<anzwoche;i++) setdates[i]=(int*)calloc(7,sizeof(int));
+	puts("hey");
+	puts("ho");
 	char janein1=32, janein3[7]; for(int i=0;i<7;i++) janein3[i]=32;
 	char janein2=32;
 	//int lauf1=0, lauf2=0, lauf3[]={0,0,0,0,0,0,0};
@@ -473,7 +558,7 @@ void tagesauswahl()
 				} 
 				else
 				{
-					puts("Alles bestellen? Bitte nur j oder n eingeben:");
+					printf("Alles bestellen? Bitte nur j oder n eingeben:");
 					do
 					{
 						//lauf2++;
@@ -517,5 +602,13 @@ void tagesauswahl()
 			} else puts("Falsche Eingabe! Nochmal bitte.");
 		}while((janein1!='n') && (janein1!='j')) ;
 	}
+	
+}
+
+void getsel_datums(char* userid, char* passwd)
+{
+	FILE* wochenliste;
+	wochenliste=fopen("findoutput","r");
+	find("findoutput","selected=\"selected\"",anzwoche-1); //--> schon nach selected bla in kalwochen suchen
 	
 }
