@@ -46,6 +46,7 @@ void getsel_datums();
 void createmenufiles(char* userid, char* passwd);
 void gethiddenandbestellt();
 void getdatensatz();
+void getrating();
 char* frstln(char* dest, int size, char inputfile[]);
 char* lstln(const char inputfile[]);
 char* frstnchr(char* input, int n);
@@ -767,7 +768,7 @@ void createmenufiles(char* userid, char* passwd)
 		strcpy(menufilename,"menu");
 		menunumber[0]=48+i; menunumber[1]='\0';
 		strcat(menufilename,menunumber); strcat(menufilename,"\0");
-		printf("%s\n",menufilename) ;// ToDo: does this really work?, now it does
+		printf("%s\n",menufilename) ;
 		menus[i]=fopen(menufilename, "w");
 		strcpy(postfield,"sel_datum=");
 		strcat(postfield,slynmbwochen[i]);
@@ -1028,3 +1029,10 @@ void getdatensatz()
 		}		
 	}	
 }
+
+void getrating()
+{
+	
+	
+}
+
