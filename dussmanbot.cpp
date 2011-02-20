@@ -5,6 +5,7 @@
 #include<stdlib.h>
 #include<malloc.h>
 #include<memory.h>
+#include<ctype.h>
 #define _FILE_OFFSET_BITS 64 /* for pre libcurl 7.19.0 curl_off_t magic */
 /*
  * TODO:    grep -A (lines after found) :DONE Done
@@ -46,13 +47,15 @@ void getsel_datums();
 void createmenufiles(char* userid, char* passwd);
 void gethiddenandbestellt();
 void getdatensatz();
-void getrating();
+void getratingandbestelldaten();
+void sendbestellung();
 char* frstln(char* dest, int size, char inputfile[]);
 char* lstln(const char inputfile[]);
 char* frstnchr(char* input, int n);
 //char* cut(char* input, const char* delim, int fieldstart, int fieldstop);
 char* cut2(char* inputstring, char* delim, int fieldstart, int fieldstop);
 int find(const char inputfile[], const char searchstring[], int linesafter = 0);
+char *strlwr(char *s);
 FILE* findfile;
 int startwoche=0, anzwoche=0;
 int** setdates; //Array, das speichert, für welche Tage bestellt werden soll.
@@ -80,6 +83,7 @@ int main()
 	//createmenufiles(uid,pwd);
 	gethiddenandbestellt();
 	getdatensatz();
+	getratingandbestelldaten();
     //char text[] = "Guten Tagderefd\npens\0i";
     //char *cutten = cut(text, "t", 2, 2);
     //printf("%s",cutten);
@@ -111,6 +115,48 @@ char* frstln(const char inputfile[])
 	return output;
     
 } */
+
+
+char *strlwr(char *s)
+{
+  char *p = s;
+
+  while (*p)
+  {
+    *p = (char) tolower(*p);
+    p++;
+  }
+
+  return s;
+}
+/*
+ * // Copyright (C) 2002 Michael Ringgaard. All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions
+// are met:
+// 
+// 1. Redistributions of source code must retain the above copyright 
+//    notice, this list of conditions and the following disclaimer.  
+// 2. Redistributions in binary form must reproduce the above copyright
+//    notice, this list of conditions and the following disclaimer in the
+//    documentation and/or other materials provided with the distribution.  
+// 3. Neither the name of the project nor the names of its contributors
+//    may be used to endorse or promote products derived from this software
+//    without specific prior written permission. 
+// 
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
+// FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+// DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+// OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+// LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+// OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
+// SUCH DAMAGE.
+ */ //--> für die strlwr function
 
 char* cut2(char* inputstring, char* delim, int fieldstart, int fieldstop)
 {
@@ -449,7 +495,6 @@ int find(const char inputfile[], const char searchstring[], int linesafter)
             //{
                 //int stillok = 1;
                 //for (int j = 0; j < strlen(searchstring); j++)
-                //{ // TODO: printf(differenz stringlänge lines und searchstring ausgeben für debuggen)
 					
                     //if (stillok)
                     //{
@@ -993,7 +1038,7 @@ void getdatensatz()
 					if((tmp[0]=='\n') &&(j<7)) {wirkbestellen[i][j%7]=0; continue;}
 					if((tmp[0]=='\n') && (j/7==1)){continue;} //--> die leeren Menü2s bleiben '\0'
 					strcpy(wocheplustagplusdaten[i][j%7][3*(j/7)],tmp); //Menünamen abspeichern, damit man nach ihm in den folgenden Zeilen suchen kann, damit man die restlichen Daten ermitteln kann
-					printf("%i %i %s",i,j,wocheplustagplusdaten[i][j%7][3*(j/7)]);
+					printf("%i %i %s",i,j,wocheplustagplusdaten[i][j%7][3*(j/7)]); //TODO: '\n' am Ende der Zeile löschen ('\r' auch(?) )
 				}
 			}
 			//free(tmp);//Nun weiß man die Tage, für welche MENÜS bestellt müssen, man weiß nicht, wo Desserts bestellt werden müssen 
@@ -1011,12 +1056,13 @@ void getdatensatz()
 						fgets(tmp, 300, essendata);
 						cut2(tmp,"\"",4,4);
 						strcpy(wocheplustagplusdaten[i][j%7][3*(j/7)+1],tmp);
-						printf("%s",wocheplustagplusdaten[i][j%7][3*(j/7)+1]);
+						//printf("%s",wocheplustagplusdaten[i][j%7][3*(j/7)+1]);
 						rewind(essendata);
 						fgets(tmp,300, essendata);
 						cut2(tmp,"\"",6,6);
 						strcpy(wocheplustagplusdaten[i][j%7][3*(j/7)+2], tmp);
-						printf("%s",wocheplustagplusdaten[i][j%7][3*(j/7)+2]);
+						//wocheplustagplusdaten[i][j%7][3*(j/7)+2][strlen(wocheplustagplusdaten[i][j%7][3*(j/7)+2])-1]='\0';
+						//printf("%s",wocheplustagplusdaten[i][j%7][3*(j/7)+2]);
 						fclose(essendata);	
 					}
 				}
@@ -1030,9 +1076,217 @@ void getdatensatz()
 	}	
 }
 
-void getrating()
+void getratingandbestelldaten()
+{
+	FILE* ratinglist;
+	//ratinglist=fopen("ratings","a+"); //nochmal wegen anhängen modus nachschauen!!
+	float ratings[anzwoche][7][3]; //--> stores ratings for foods
+	char** hackstring;
+	for(int i=0; i<anzwoche;i++)
+	{
+		for(int j=0;j<7;j++)
+		{
+			for(int b=0;b<3;b++) ratings[i][j][b]=0;
+			if(wirkbestellen[i][j]==1)
+			{
+				//Nun kommt Menü1, ich stelle fest, dass ich eine for-schleife machen kann:
+				for(int p=0;p<3;p++)
+				{
+					if(strlen(wocheplustagplusdaten[i][j][3*p])==0) continue; //DAS IST SCHWACHSINN!!! //Dadurch bleiben die Rating für ein leeres Menü 2 0
+					char* tmp=(char*)malloc(100);
+					char* pch;
+					int numwords=1;
+					tmp=strcpy(tmp,wocheplustagplusdaten[i][j][0+3*p]);
+					pch=strtok(tmp," ,.");
+					while(pch!=NULL)
+					{
+						pch=strtok(NULL," ,.");
+						numwords++;
+					}
+					numwords--;
+					hackstring=(char**)calloc(numwords,sizeof(char*));
+					for(int k=0;k<numwords;k++) {hackstring[k]=(char*)malloc(70*sizeof(char)); strcpy(hackstring[k],"\0");}
+					tmp=strcpy(tmp, wocheplustagplusdaten[i][j][0+3*p]);
+					pch=strtok(tmp," ,.");
+					strcpy(hackstring[0],pch);
+					//hackstring[k]=strlwr(hackstring[0]); hier noch nicht, wegen der pseudosubstantiven adjektive (Szegediner Gulasch)
+					for(int k=1;k<numwords;k++)
+					{
+						pch=strtok(NULL," ,.");
+						strcpy(hackstring[k],pch);
+					} 
+					for(int k=numwords-1;k>0;k--)//--> Bindestrichwörter werden geconcatenated ==> mehr leere strings.
+					{
+						if( hackstring[k][strlen(hackstring[k])-1] == '\n') hackstring[k][strlen(hackstring[k])-1]='\0'; //TODO: das ist dann nicht mehr, wenn das Todo gemacht wurde!!!
+						if(hackstring[k-1][strlen(hackstring[k-1])-1]=='-') 
+						{ 
+							hackstring[k-1]=strcat(hackstring[k-1],hackstring[k]); 
+							for(int m=k;m<numwords-1;m++)
+							{
+								strcpy(hackstring[m],hackstring[m+1]);
+							}
+							strcpy(hackstring[numwords-1],"\0");
+							//strcpy(hackstring[k],"\0"); <-- Das war doof, nun sind alle hackstrings "hintereinander", endene "\0"-en !!
+						} //Bindestriche zusammenführen
+					} //TODO: " im " , " nach " nicht löschen, sowie die substantivierten Adjektive. diese Bindewörter für concatenation benützen
+					for(int k=1;k<numwords-1;k++) //jetzt kommt die Entfernung von "mit", "dazu", "und", "an"
+					{
+						if((strlen(hackstring[k])<=4) && (hackstring[k][0]!='\0'))
+						{
+							if((strstr(hackstring[k],"mit")!=NULL) || (strstr(hackstring[k],"dazu")) ||(strstr(hackstring[k],"und")!=NULL) ||(((strlen(hackstring[k])==2)) && (strstr(hackstring[k],"an")!=NULL)))
+							{
+								strcpy(hackstring[k],"\0");
+							} //--> die hackstrings, die noch zusammengehören wegen adjektive oder im , nach sind noch 
+							  //"hintereinander", auch wenn es zwischen diesen "Komplexen" '\0'-er Lücken gibt. --> bei 
+							  //Bindestrichen muss aber nachgerückt werden!!!! Habe ich gemacht!
+						}
+					}
+					for(int k=0;k<numwords-1;k++) //nun die "<br />" s entfernen, falls vorhanden
+					{
+						if((strstr(hackstring[k],"<br")!= NULL) && (strstr(hackstring[k+1],"/>")!=NULL))
+						{
+							for(int m=k;m<numwords-2;m++)
+							{
+								strcpy(hackstring[m],hackstring[m+2]);
+							}
+							strcpy(hackstring[numwords-1],"\0");
+							strcpy(hackstring[numwords-2],"\0");
+						}
+					}
+					for(int k=0;k<numwords;k++) //nun die "&amp;" s entfernen
+					{
+						if(strstr(hackstring[k],"&amp;")!=NULL)
+						{
+							for(int m=k;m<numwords-1;m++)
+							{
+								strcpy(hackstring[m],hackstring[m+1]);
+							}
+							strcpy(hackstring[numwords-1],"\0");
+						}
+					}
+					//für adjektive und den ganzen Rest folgende Idee: alles was jetzt "direkt" hintereinander ist, wird geconcatenated, der Rest
+					//mit "\0" überschrieben.
+					int start=0;
+					int count=0;
+					while(count<numwords)
+					{
+						if(strlen(hackstring[count])>0)
+						{
+							start=count;
+							count++;//der nachfolgende String soll erst angehängt werden, nicht der gleiche zweimal
+							while((count<numwords) && (strlen(hackstring[count])>0))//nur die nichtleeren Strings sollen zusammengefügt werden
+							{
+								hackstring[start]=strcat(hackstring[start],hackstring[count]);//die nachfolgend Strings anhängen, bis ein leerer String erscheint
+								strcpy(hackstring[count],"\0");//Wenn dieser String kopiert wurde, ihn löschen
+								count++; //bereit für den nächsten String
+							}
+						} else count++; //wenn dieser String gerade leer ist weiter machen bis man einen nichtleeren String findet
+					} //wenn jetzt nichts schiefgegangen ist, dann sind die String fertig verbunden ;-)
+					//jetzt kommt die bewertung:
+					
+					float bew=0;
+					int summand=0;
+					char* bewertung=(char*)malloc(5); strcpy(bewertung,"\0");
+					int foodcount=0;
+					char* storing=(char*)malloc(100); strcpy(storing,"\0");
+					for(int k=0; k<numwords;k++)
+					{
+						strcpy(storing,"\0"); strcpy(bewertung,"\0");
+						summand=0;
+						if((strlen(hackstring[k])>0) && (find("ratings",hackstring[k])))
+						{
+							foodcount++;
+							tmp=frstln(tmp,100,"findoutput");
+							tmp=cut2(tmp," ",1,1);
+							bewertung=strcpy(bewertung,tmp);
+							for(int n=0;n<strlen(bewertung);n++)
+							{
+								summand=10*summand+(bewertung[n]-48)*1;
+							}						
+							bew+=summand;						
+						}
+						if((strlen(hackstring[k])>0) && (find("ratings",hackstring[k])==0))
+						{
+							foodcount++;
+							printf("Wie bewertest du %s ? Bitte Ganzzahl von 1 bis 10: ",hackstring[k]);
+							fflush(stdout);
+							fflush(stdin);
+							scanf("%i",&summand);
+							ratinglist=fopen("ratings","a+");
+							if(summand<10)
+							{
+								strcpy(storing,"  \0"); 
+								storing[0]=48+summand;
+							}
+							if(summand==10) strcpy(storing,"10");
+							storing=strcat(storing," ");
+							storing=strcat(storing,hackstring[k]);
+							storing=strcat(storing,"\n");
+							fputs(storing,ratinglist);
+							fclose(ratinglist);
+							bew+=summand;
+						}
+					}
+					ratings[i][j][p]=bew/foodcount;
+					free(tmp);
+					free(bewertung);
+					free(hackstring);
+					free(storing);
+					
+				}
+				
+			}
+			
+		}
+	}
+	bestelldaten=(char***)calloc(anzwoche,sizeof(char**));
+	for(int i=0; i<anzwoche;i++)
+	{
+		bestelldaten[i]=(char**)calloc(7,sizeof(char*));
+		for(int j=0;j<7;j++)
+		{
+			bestelldaten[i][j]=(char*)malloc(25);
+			strcpy(bestelldaten[i][j],"\0");
+			if(wirkbestellen[i][j]==1)
+			{
+				if((ratings[i][j][0]>=ratings[i][j][1]) && (ratings[i][j][0]>=ratings[i][j][2])) 
+				{
+					strcpy(bestelldaten[i][j],wocheplustagplusdaten[i][j][1]);
+					strcat(bestelldaten[i][j],"=");
+					strcat(bestelldaten[i][j],wocheplustagplusdaten[i][j][2]);
+					//strcat(bestelldaten[i][j],"\0");
+				}
+				if((ratings[i][j][1]>=ratings[i][j][0]) && (ratings[i][j][1]>=ratings[i][j][2]))
+				{
+					strcpy(bestelldaten[i][j],wocheplustagplusdaten[i][j][4]);
+					strcat(bestelldaten[i][j],"=");
+					strcat(bestelldaten[i][j],wocheplustagplusdaten[i][j][5]);
+					//strcat(bestelldaten[i][j],"\0");
+				}
+				if((ratings[i][j][2]>=ratings[i][j][1]) && (ratings[i][j][2]>=ratings[i][j][0])) 
+				{
+					strcpy(bestelldaten[i][j],wocheplustagplusdaten[i][j][7]);
+					strcat(bestelldaten[i][j],"=");
+					strcat(bestelldaten[i][j],wocheplustagplusdaten[i][j][8]);
+					//strcat(bestelldaten[i][j],"\0");
+				}
+			}
+		}
+	}
+	for(int i=0;i<anzwoche;i++)
+	{
+		for(int j=0;j<7;j++)
+		{
+			if(wirkbestellen[i][j]==1)	printf("%s \n", bestelldaten[i][j]);
+		}
+	}
+}
+
+
+
+void sendbestellung()
 {
 	
-	
 }
+
 
