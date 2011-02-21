@@ -1069,7 +1069,7 @@ void getdatensatz()
 			} 
 			free(tmp);
 				//--> Die Daten für die Menüs für die wirklich zu bestellenden Tage sind abgespeichert.
-				// --> Die Nummer des entsprechendenden Desserts lässt sich aus der rad_ nummer herleiten ==>
+				// -->TODO: Die Nummer des entsprechendenden Desserts lässt sich aus der rad_ nummer herleiten ==>
 				// wenn die Suche nach der Nummer ergibt, dass die schon bereits grün ist, wird die nicht bestellt,
 				// ansonsten wird diese bestellt
 		}		
@@ -1188,12 +1188,15 @@ void getratingandbestelldaten()
 					int summand=0;
 					char* bewertung=(char*)malloc(5); strcpy(bewertung,"\0");
 					int foodcount=0;
+					char* alllow;//=(char*)malloc(70);strcpy(alllow,"\0");
 					char* storing=(char*)malloc(100); strcpy(storing,"\0");
 					for(int k=0; k<numwords;k++)
 					{
 						strcpy(storing,"\0"); strcpy(bewertung,"\0");
 						summand=0;
-						if((strlen(hackstring[k])>0) && (find("ratings",hackstring[k])))
+						alllow=strdup(hackstring[k]);
+						strlwr(alllow);
+						if((strlen(hackstring[k])>0) && (find("ratings",alllow)))
 						{
 							foodcount++;
 							tmp=frstln(tmp,100,"findoutput");
@@ -1205,7 +1208,7 @@ void getratingandbestelldaten()
 							}						
 							bew+=summand;						
 						}
-						if((strlen(hackstring[k])>0) && (find("ratings",hackstring[k])==0))
+						if((strlen(hackstring[k])>0) && (find("ratings",alllow)==0))
 						{
 							foodcount++;
 							printf("Wie bewertest du %s ? Bitte Ganzzahl von 1 bis 10: ",hackstring[k]);
@@ -1220,12 +1223,13 @@ void getratingandbestelldaten()
 							}
 							if(summand==10) strcpy(storing,"10");
 							storing=strcat(storing," ");
-							storing=strcat(storing,hackstring[k]);
+							storing=strcat(storing,alllow);
 							storing=strcat(storing,"\n");
 							fputs(storing,ratinglist);
 							fclose(ratinglist);
 							bew+=summand;
 						}
+						free(alllow);
 					}
 					ratings[i][j][p]=bew/foodcount;
 					free(tmp);
@@ -1284,8 +1288,220 @@ void getratingandbestelldaten()
 
 
 
-void sendbestellung()
+void sendbestellung()//hier muss sowohl das Senden der daten für die Woche, als auch das senden der bestätigung!!!,
+						//praktisch die letzte Funktion auf dem Schlachtfeld
 {
+	int bestellsumme=0; //summiert einfach die wirkbestellen, sodass man weiß, ob diese woche überhaupt bestellt werden soll
+	char* postfield;
+	postfield=(char*)malloc(1000); strcpy(postfield,"\0");
+	char* menufilename=(char*)malloc(8);
+	char* menunumber=(char*)malloc(3);
+	FILE* bestbest1[anzwoche]; //Bestellbestätigung 1;
+	FILE* bestbest2[anzwoche]; //Der User soll nichts davon sehen...
+	for(int i=0;i<anzwoche;i++) //Das ist doof, wir sollten bereits hier schon unterscheiden, ob für die Woche überhaupt bestellt werden soll :DONE Done
+	{
+		for(int j=0;j<anzwoche;j++) bestellsumme+=wirkbestellen[i][j];
+		
+		if(bestellsumme>0)
+		{
+			strcpy(menufilename,"menu");
+			menunumber[0]=48+i; menunumber[1]='\0';
+			strcat(menufilename,menunumber); strcat(menufilename,"\0");
+			strcpy(postfield,"\0");
+			strcpy(postfield,hidden[i][0]);
+			
+			for(int j=1;j<35;j++) 
+			{
+				if(strlen(hidden[i][j])>0)
+				{
+					strcat(postfield,"&");
+					strcat(postfield,hidden[i][j]);
+				}
+			}
+			strcat(postfield,"&");
+			for(int j=0;j<35;j++)
+			{
+				if(strlen(bergruen[i][j])>0)
+				{
+					strcat(postfield,"&");
+					strcat(postfield,bergruen[i][j]);
+				}
+			}
+			for(int j=0;j<35;j++)
+			{
+				if(strlen(bergruend[i][j])>0)
+				{
+					strcat(postfield,"&");
+					strcat(postfield,bergruend[i][j]);
+				}
+			}
+			for(int j=0;j<7;j++)
+			{
+				
+				if(wirkbestellen[i][j]==1)
+				{
+					strcat(postfield,"&");
+					strcat(postfield,bestelldaten[i][j]);
+				}
+			}
+			for(int j=0;j<35;j++) //nun kommen die fehlenden Desserts, hier menü bereits grün, aber dessert noch nicht
+			{
+				if((strlen(bergruen[i][j])>0) && (strstr(bergruen[i][j],"rad_")!=NULL)/* bereits grün, sodass es rad enthält, die nummer, davon das entsprechende fld, gucken, ob das schon grün ist*/)//(wirkbestellen([i][j]==1) //das ist schwachsinn!//nun die Desserts:-->menünamen benötigt.
+				{
+					char* dessertstring=(char*)malloc(25);strcpy(dessertstring,"\0");
+					char* tmp=(char*)malloc(25); tmp=strcpy(tmp,bergruen[i][j]);
+					tmp=cut2(tmp,"_",2,3);
+					strcpy(dessertstring,"fld_");
+					strcat(dessertstring,tmp);
+					strcat(dessertstring,"_4");
+					find(menufilename,dessertstring);
+					if(find("findoutput","gruen pointer")==0)
+					{
+						strcat(postfield,"&");
+						strcat(postfield,dessertstring);
+						strcat(postfield,"=1");
+					}
+					free(dessertstring);
+					free(tmp);
+				}
+			}
+			for(int j=0;j<7;j++)//hier zu bestellendes Menü und gucken, ob dessert schon bestellt ist oder noch nicht, wenn nicht, dann halt an postfield anhängen	/*if(das gleiche wie oben, bloß bei dem bestelldata menü die nummer nehmen, dann fld gucken, ob das schon grün ist) */
+			{
+				if(wirkbestellen[i][j]==1)
+				{
+					char* dessertstring=(char*)malloc(25);strcpy(dessertstring,"\0");
+					char* tmp=(char*)malloc(25); tmp=strcpy(tmp,bestelldaten[i][j]);
+					tmp=cut2(tmp,"_",2,3);
+					strcpy(dessertstring,"fld_");
+					strcat(dessertstring,tmp);
+					strcat(dessertstring,"_4");
+					find(menufilename,dessertstring);
+					if(find("findoutput","gruen pointer")==0)
+					{
+						strcat(postfield,"&");
+						strcat(postfield,dessertstring);
+						strcat(postfield,"=1");
+					}
+					free(dessertstring);
+					free(tmp);
+				}
+			}//nun ist das POST-Field fertig, jetzt kommt das Senden und das empfangen der neuen Datei.
+			//Da wegen der ersten if-Bedingung eine Bestellung erfolgen muss( scheiße, was ist, wenn nur menü gruen, aber keine desserts???, hmm, die desserts werden dann nicht mehr bestellt)	stimmt. da hat man halt pech, kann weiter entwickelt werden, es geht um das KONZEPT
+			
+			//--------------------------------------------------------------------------------------------
+			//Die erste Bestätigung herunterladen
+			//--------------------------------------------------------------------------------------------
+			strcpy(menufilename,"bstst"); //Das soll die erste Bestellbestätigung werden;
+			menunumber[0]=48+i; menunumber[1]='\0';
+			strcat(menufilename,menunumber); strcat(menufilename,"\0");
+			bestbest1[i]=fopen(menufilename,"w");
+			CURLcode ret; //achtung, diese mehrfachen rets führen zu fehlern--> umbenennen
+			CURL *hnd = curl_easy_init();
+			curl_easy_setopt(hnd, CURLOPT_WRITEDATA, bestbest1[i]);
+			curl_easy_setopt(hnd, CURLOPT_INFILESIZE_LARGE, -1);
+			curl_easy_setopt(hnd, CURLOPT_URL, "http://www.dussmann-lpf.rcs.de/index.php?m=150;0;1;3");
+			curl_easy_setopt(hnd, CURLOPT_PROXY, NULL);
+			curl_easy_setopt(hnd, CURLOPT_PROXYUSERPWD, NULL); 
+			curl_easy_setopt(hnd, CURLOPT_POSTFIELDS, postfield);
+			curl_easy_setopt(hnd, CURLOPT_USERAGENT, "Mozilla/5.0 (X11; U; Linux i686; de; rv:1.9.2.12) Gecko/20101027 Firefox/3.6.12");
+			curl_easy_setopt(hnd, CURLOPT_COOKIEFILE, "Cookiedatei");
+			curl_easy_setopt(hnd, CURLOPT_COOKIEJAR, NULL);
+			ret = curl_easy_perform(hnd);
+			curl_easy_cleanup(hnd);
+			fclose(bestbest1[i]);
+			
+			//------------------------------------------------------------------------------------------
+			//Die hidden-values wegen bestellen und so aus der ersten Bestätigung extrahieren
+			//------------------------------------------------------------------------------------------
+			/* 
+			 * action string extrahieren, damit man sich die Suche nach starttag sparen kann 
+			 * Achtung, die bereits gespeicherten Daten wegen hidden und so nicht nochmal schicken, da dort auch falsche Daten drin sind
+			 *  ==> nochmal die neuen hidden werte ermitteln, auf js_hidden aufpassen (nach "hidden suchen) --> bis inklusive zeile bestellpreis einlesen, den rest 
+			 *      nicht mehr als hidden-zeugs abspeichern
+			 * um die stelle für schneiden wegen bestellenfoo zu ermitteln einfach ein strstr(zeile,"best_") machen
+			 */
+			char* actionurl=(char*)malloc(120); strcpy(actionurl,"http://www.dussmann-lpf.rcs.de/");
+			char** newhidden;
+			int lnstillpreis=0;
+			FILE* hiddenposts;
+			char* tmp=(char*)malloc(150); strcpy(tmp,"\0");
+			char* tmp2=(char*)malloc(150);strcpy(tmp2,"\0");
+			find(menufilename,"<form action="); //still the same name 
+			hiddenposts=fopen("findoutput","r");
+			fgets(tmp, 150,hiddenposts);
+			fclose(hiddenposts);
+			tmp=cut2(tmp,"\"",2,2);
+			strcat(actionurl,tmp);
+			strcat(actionurl,"\0");
+			find(menufilename,"\"hidden");
+			hiddenposts=fopen("findoutput","r");
+			do
+			{
+				lnstillpreis++;
+			}while(strstr(fgets(tmp,150,hiddenposts),"bestellpreis")==NULL);
+			newhidden=(char**)calloc(lnstillpreis,sizeof(char*));
+			rewind(hiddenposts);
+			for(int k=0; k<lnstillpreis;k++) newhidden[k]=(char*)malloc(30);
+			for(int k=0;k<lnstillpreis;k++)
+			{
+				fgets(tmp,150,hiddenposts);
+				tmp2=strcpy(tmp2,tmp);
+				if(strstr(tmp,"best_")!=NULL)
+				{
+					tmp=cut2(tmp,"\"",6,6);
+					strcpy(newhidden[k],tmp);
+					strcat(newhidden[k],"=");
+					strcat(newhidden[k],"\0");
+				}
+				else if(strstr(tmp,"guthaben")==NULL)
+				{
+					tmp=cut2(tmp,"\"",4,4);
+					strcpy(newhidden[k],tmp);
+					strcat(newhidden[k],"=");
+					tmp2=cut2(tmp2,"\"",6,6);
+					strcat(newhidden[k],"\0");
+				} else if(strstr(tmp,"guthaben")!=NULL)
+				{
+					strcpy(newhidden[k],"guthaben=");
+				}
+			}
+			
+			//--------------------------------------------------------------------------------------
+			// Nun kommt das erstellen von postfield
+			//--------------------------------------------------------------------------------------
+			strcpy(postfield,newhidden[0]);
+			for(int k=1; k<lnstillpreis;k++)
+			{
+				strcat(postfield,"&");
+				strcat(postfield,newhidden[k]);
+			}
+			strcat(postfield,"\0");
+			
+			//-------------------------------------------------------------------------------------
+			// Nun kommt das Senden dieses postfields an die zuvor ermittelte action-url
+			// gespeichert wird in einer extra-Datei
+			//-------------------------------------------------------------------------------------
+			strcpy(menufilename,"bstbt"); //Das soll die erste Bestellbestätigung werden;
+			menunumber[0]=48+i; menunumber[1]='\0';
+			strcat(menufilename,menunumber); strcat(menufilename,"\0");
+			bestbest2[i]=fopen(menufilename,"w");
+			CURLcode ret2;
+			CURL *hnd2 = curl_easy_init();
+			curl_easy_setopt(hnd2, CURLOPT_WRITEDATA, bestbest2[i]);
+			curl_easy_setopt(hnd2, CURLOPT_INFILESIZE_LARGE, -1);
+			curl_easy_setopt(hnd2, CURLOPT_URL, actionurl);
+			curl_easy_setopt(hnd2, CURLOPT_PROXY, NULL);
+			curl_easy_setopt(hnd2, CURLOPT_PROXYUSERPWD, NULL); 
+			curl_easy_setopt(hnd2, CURLOPT_POSTFIELDS, postfield);
+			curl_easy_setopt(hnd2, CURLOPT_USERAGENT, "Mozilla/5.0 (X11; U; Linux i686; de; rv:1.9.2.12) Gecko/20101027 Firefox/3.6.12");
+			curl_easy_setopt(hnd2, CURLOPT_COOKIEFILE, "Cookiedatei");
+			curl_easy_setopt(hnd2, CURLOPT_COOKIEJAR, NULL);
+			ret2 = curl_easy_perform(hnd2);
+			curl_easy_cleanup(hnd2);
+			fclose(bestbest2[i]);
+			
+		}	
+	} //STOPP, diese for-schleife darf ich nicht verlassen, da das postfield kein array ist!!
 	
 }
 
