@@ -75,15 +75,16 @@ int main()
 	scanf("%s",uid);
 	printf("Was ist ihr Passwort: ");
 	scanf("%s",pwd);
-	//loginandcookie(uid,pwd);
+	loginandcookie(uid,pwd);
 	//////find("kalendera","<select name=\"sel_datum\" class=\"no_print\" onchange=\"document.form_sel_datum.submit()\">",12);
 	kalwochen(uid, pwd); 
 	tagesauswahl();
 	getsel_datums();
-	//createmenufiles(uid,pwd);
+	createmenufiles(uid,pwd);
 	gethiddenandbestellt();
 	getdatensatz();
 	getratingandbestelldaten();
+	sendbestellung();
     //char text[] = "Guten Tagderefd\npens\0i";
     //char *cutten = cut(text, "t", 2, 2);
     //printf("%s",cutten);
@@ -605,8 +606,8 @@ int loginandcookie(char* userid, char* passwd)
 	CURL *hnd = curl_easy_init();
 	curl_easy_setopt(hnd, CURLOPT_WRITEDATA, essen);
 	curl_easy_setopt(hnd, CURLOPT_INFILESIZE_LARGE, -1);
-	curl_easy_setopt(hnd, CURLOPT_URL, "http://www.dussmann-lpf.rcs.de/index.php?m=1;3&a=akt_login");
-	curl_easy_setopt(hnd, CURLOPT_PROXY, "192.168.0.1:3128");
+	curl_easy_setopt(hnd, CURLOPT_URL, "http://dussmann-lpf.rcs.de/index.php?m=1;3&a=akt_login");
+	curl_easy_setopt(hnd, CURLOPT_PROXY, NULL);
 	curl_easy_setopt(hnd, CURLOPT_PROXYUSERPWD, NULL); 
 	curl_easy_setopt(hnd, CURLOPT_POSTFIELDS, postfield);
  	curl_easy_setopt(hnd, CURLOPT_USERAGENT, "Mozilla/5.0 (X11; U; Linux i686; de; rv:1.9.2.12) Gecko/20101027 Firefox/3.6.12");
@@ -639,19 +640,19 @@ int kalwochen(char* userid, char* passwd)
 	}
 	fclose(wochenliste);
 	//wochenliste=fopen("findoutput","r");
-	puts("test");
+	//puts("test");
 	//fgets(buffer,130,wochenliste);
 	//buffer[strlen(buffer)-1]='\0';
 	char* puffer=(char*)malloc(150);
 	frstln(puffer,150,"findoutput");
-	printf("%s\n",puffer);
+	//printf("%s\n",puffer);
 	//char*tmp=strdup(puffer);
 	cut2(puffer,":",2,2);	
 	//fclose(wochenliste);
-	printf("%s \n",puffer);
+	//printf("%s \n",puffer);
 	cut2(puffer," ",1,1);
 	//free(puffer);
-	printf("buffer is %s\n",puffer);
+	//printf("buffer is %s\n",puffer);
 	//startwochenbuffer[1]+=4;
 	//printf("pimmel %c\n",startwochenbuffer[1]);
 	for(int i=48; i<=53; i++)
@@ -742,8 +743,8 @@ void tagesauswahl()
 										//if(lauf3[k]==1)continue;
 										if((janein3[k]=='n') || (janein3[k]=='j'))
 										{
-											puts("hi");
-											if(janein3[k]=='j') { setdates[i][k]=1; printf("%i",setdates[i][k]);}
+											//puts("hi");
+											if(janein3[k]=='j') { setdates[i][k]=1;} //printf("%i",setdates[i][k]);}
 											else setdates[i][k]=0; 
 										} else printf("Falsche Eingabe! Nochmal bitte:");										
 									
@@ -793,7 +794,7 @@ void getsel_datums()
 		if(bestellen==1) 
 		{
 			strcpy(slynmbwochen[i],cut2(buffer,"\"",2,2)); //get silly numbers
-			printf("%s\n",slynmbwochen[i]);
+			//printf("%s\n",slynmbwochen[i]);
 		}
 		else strcpy(slynmbwochen[i],"0");
 	}	
@@ -813,17 +814,17 @@ void createmenufiles(char* userid, char* passwd)
 		strcpy(menufilename,"menu");
 		menunumber[0]=48+i; menunumber[1]='\0';
 		strcat(menufilename,menunumber); strcat(menufilename,"\0");
-		printf("%s\n",menufilename) ;
+		//printf("%s\n",menufilename) ;
 		menus[i]=fopen(menufilename, "w");
 		strcpy(postfield,"sel_datum=");
 		strcat(postfield,slynmbwochen[i]);
-		printf("%s\n",postfield);
+		//printf("%s\n",postfield);
 		CURLcode ret;
 		CURL *hnd = curl_easy_init();
 		curl_easy_setopt(hnd, CURLOPT_WRITEDATA, menus[i]);
 		curl_easy_setopt(hnd, CURLOPT_INFILESIZE_LARGE, -1);
-		curl_easy_setopt(hnd, CURLOPT_URL, "http://www.dussmann-lpf.rcs.de/index.php?m=1;3");
-		curl_easy_setopt(hnd, CURLOPT_PROXY, "192.168.0.1:3128");
+		curl_easy_setopt(hnd, CURLOPT_URL, "http://dussmann-lpf.rcs.de/index.php?m=1;3");
+		curl_easy_setopt(hnd, CURLOPT_PROXY, NULL);
 		curl_easy_setopt(hnd, CURLOPT_PROXYUSERPWD, NULL); 
 		curl_easy_setopt(hnd, CURLOPT_POSTFIELDS, postfield);
 	 	curl_easy_setopt(hnd, CURLOPT_USERAGENT, "Mozilla/5.0 (X11; U; Linux i686; de; rv:1.9.2.12) Gecko/20101027 Firefox/3.6.12");
@@ -850,7 +851,7 @@ void gethiddenandbestellt()
 		char* puffer=(char*)malloc(sizeof(char)*50);
 		FILE* listhidden;
 		hidden[i]=(char**)calloc(35,sizeof(char*));
-		printf("dudel\n");
+		//printf("dudel\n");
 		for(int k=0;k<35;k++) {hidden[i][k]=(char*)malloc(50);strcpy(hidden[i][k],"\0");}
 		if(strlen(slynmbwochen[i])>2)
 		{
@@ -872,9 +873,9 @@ void gethiddenandbestellt()
 				tmp2=strcpy(tmp2,tmp);
 				strcat(puffer,"=");
 				strcat(puffer,cut2(tmp2,"\"",6,6));
-				printf("%s\n",puffer);
+				//printf("%s\n",puffer);
 				hidden[i][j]=strcpy(hidden[i][j],puffer);
-				printf("diedeldu %s\n",hidden[i][j]);
+				//printf("diedeldu %s\n",hidden[i][j]);
 			}
 			fclose(listhidden);
 		}
@@ -892,7 +893,7 @@ void gethiddenandbestellt()
 		char* puffer=(char*)malloc(sizeof(char)*50);
 		FILE* listgruen;
 		bergruen[i]=(char**)calloc(35,sizeof(char*));
-		printf("dudel\n");
+		//printf("dudel\n");
 		for(int k=0;k<35;k++) {bergruen[i][k]=(char*)malloc(50);strcpy(bergruen[i][k],"\0");}
 		if(strlen(slynmbwochen[i])>2)
 		{
@@ -915,9 +916,9 @@ void gethiddenandbestellt()
 				tmp2=strcpy(tmp2,tmp);
 				strcat(puffer,"=");
 				strcat(puffer,cut2(tmp2,"\"",6,6));
-				printf("%s\n",puffer);
+				//printf("%s\n",puffer);
 				bergruen[i][j]=strcpy(bergruen[i][j],puffer);
-				printf("diedeldu %s\n",bergruen[i][j]);
+				//printf("diedeldu %s\n",bergruen[i][j]);
 			}
 			fclose(listgruen);
 		}
@@ -935,7 +936,7 @@ void gethiddenandbestellt()
 		char* puffer=(char*)malloc(sizeof(char)*50);
 		FILE* listgruend;
 		bergruend[i]=(char**)calloc(35,sizeof(char*));
-		printf("dudel\n");
+		//printf("dudel\n");
 		for(int k=0;k<35;k++) {bergruend[i][k]=(char*)malloc(50);strcpy(bergruend[i][k],"\0");}
 		if(strlen(slynmbwochen[i])>2)
 		{
@@ -958,9 +959,9 @@ void gethiddenandbestellt()
 				tmp2=strcpy(tmp2,tmp);
 				strcat(puffer,"=");
 				strcat(puffer,cut2(tmp2,"\"",14,14));
-				printf("%s\n",puffer);
+				//printf("%s\n",puffer);
 				bergruend[i][j]=strcpy(bergruend[i][j],puffer);
-				printf("diedeldu %s\n",bergruend[i][j]);
+				//printf("diedeldu %s\n",bergruend[i][j]);
 			}
 			fclose(listgruend);
 		}
@@ -1038,7 +1039,7 @@ void getdatensatz()
 					if((tmp[0]=='\n') &&(j<7)) {wirkbestellen[i][j%7]=0; continue;}
 					if((tmp[0]=='\n') && (j/7==1)){continue;} //--> die leeren Menü2s bleiben '\0'
 					strcpy(wocheplustagplusdaten[i][j%7][3*(j/7)],tmp); //Menünamen abspeichern, damit man nach ihm in den folgenden Zeilen suchen kann, damit man die restlichen Daten ermitteln kann
-					printf("%i %i %s",i,j,wocheplustagplusdaten[i][j%7][3*(j/7)]); //TODO: '\n' am Ende der Zeile löschen ('\r' auch(?) )
+					//printf("%i %i %s",i,j,wocheplustagplusdaten[i][j%7][3*(j/7)]); //TODO: '\n' am Ende der Zeile löschen ('\r' auch(?) )
 				}
 			}
 			//free(tmp);//Nun weiß man die Tage, für welche MENÜS bestellt müssen, man weiß nicht, wo Desserts bestellt werden müssen 
@@ -1097,22 +1098,22 @@ void getratingandbestelldaten()
 					char* pch;
 					int numwords=1;
 					tmp=strcpy(tmp,wocheplustagplusdaten[i][j][0+3*p]);
-					pch=strtok(tmp," ,.");
+					pch=strtok(tmp," ,.1234567890");
 					while(pch!=NULL)
 					{
-						pch=strtok(NULL," ,.");
+						pch=strtok(NULL," ,.1234567890");
 						numwords++;
 					}
 					numwords--;
 					hackstring=(char**)calloc(numwords,sizeof(char*));
 					for(int k=0;k<numwords;k++) {hackstring[k]=(char*)malloc(70*sizeof(char)); strcpy(hackstring[k],"\0");}
 					tmp=strcpy(tmp, wocheplustagplusdaten[i][j][0+3*p]);
-					pch=strtok(tmp," ,.");
+					pch=strtok(tmp," ,.1234567890");
 					strcpy(hackstring[0],pch);
 					//hackstring[k]=strlwr(hackstring[0]); hier noch nicht, wegen der pseudosubstantiven adjektive (Szegediner Gulasch)
 					for(int k=1;k<numwords;k++)
 					{
-						pch=strtok(NULL," ,.");
+						pch=strtok(NULL," ,.1234567890");
 						strcpy(hackstring[k],pch);
 					} 
 					for(int k=numwords-1;k>0;k--)//--> Bindestrichwörter werden geconcatenated ==> mehr leere strings.
@@ -1164,6 +1165,27 @@ void getratingandbestelldaten()
 							strcpy(hackstring[numwords-1],"\0");
 						}
 					}
+					//nun die neuen &quot; entfernen, analog zu &amp; ???
+					//for(int k=0;k<numwords;k++) //nun die "&quot;" s entfernen
+					//{
+						//if(strstr(hackstring[k],"&quot;")!=NULL)
+						//{
+							//printf("Das ist der zu kürzende String: %s",hackstring[k]);
+							////for(int m=k;m<numwords-1;m++)
+							////{
+								////strcpy(hackstring[m],hackstring[m+1]);
+							////} //Todo: keine stringverschiebung in den Arrays, sondern Buchstabenverschiebung!
+							//for(int m=0;m<strlen(hackstring[k]-1-6);m++)
+							//{
+								//for(int l=0; l<6;l++
+							//}
+							//strcpy(hackstring[numwords-1],"\0");
+						//} //TODO hier noch Baustelle
+					//} // TODO Also: es stehen ja meistens zwei quots, d.h. auch dass ein string, der zutatquotzutat ohne leerzeichen ist, aufgesplittet werden muss 
+					  // --> daher muss überprüft werden, ob ein String bereits leer ist, sodass in diesem die neu entstandene Zutat hineingeschrieben werden kann
+					  // --> sollte ich daher vielleicht die Anzahl der Hackstrings schon vorher etwas vergrößern? Nein! Der String wird in ein '""' übersetzt!
+					  // --> nur noch überlegen wie:
+					  // --> Achtung: es werden dadurch eigennamen zerstört, da der ganze quot string überschrieben wird.
 					//für adjektive und den ganzen Rest folgende Idee: alles was jetzt "direkt" hintereinander ist, wird geconcatenated, der Rest
 					//mit "\0" überschrieben.
 					int start=0;
@@ -1300,6 +1322,7 @@ void sendbestellung()//hier muss sowohl das Senden der daten für die Woche, als
 	FILE* bestbest2[anzwoche]; //Der User soll nichts davon sehen...
 	for(int i=0;i<anzwoche;i++) //Das ist doof, wir sollten bereits hier schon unterscheiden, ob für die Woche überhaupt bestellt werden soll :DONE Done
 	{
+		bestellsumme=0;
 		for(int j=0;j<anzwoche;j++) bestellsumme+=wirkbestellen[i][j];
 		
 		if(bestellsumme>0)
@@ -1349,13 +1372,14 @@ void sendbestellung()//hier muss sowohl das Senden der daten für die Woche, als
 				if((strlen(bergruen[i][j])>0) && (strstr(bergruen[i][j],"rad_")!=NULL)/* bereits grün, sodass es rad enthält, die nummer, davon das entsprechende fld, gucken, ob das schon grün ist*/)//(wirkbestellen([i][j]==1) //das ist schwachsinn!//nun die Desserts:-->menünamen benötigt.
 				{
 					char* dessertstring=(char*)malloc(25);strcpy(dessertstring,"\0");
-					char* tmp=(char*)malloc(25); tmp=strcpy(tmp,bergruen[i][j]);
+					char* tmp=(char*)malloc(150); tmp=strcpy(tmp,bergruen[i][j]);
 					tmp=cut2(tmp,"_",2,3);
+					tmp=cut2(tmp,"=",1,1);
 					strcpy(dessertstring,"fld_");
 					strcat(dessertstring,tmp);
 					strcat(dessertstring,"_4");
 					find(menufilename,dessertstring);
-					if(find("findoutput","gruen pointer")==0)
+					if((find("findoutput","gruen pointer")==0)) //&& (strlen(cut2(frstln(tmp,150,"findoutput"),">",2,2))>0))
 					{
 						strcat(postfield,"&");
 						strcat(postfield,dessertstring);
@@ -1370,13 +1394,14 @@ void sendbestellung()//hier muss sowohl das Senden der daten für die Woche, als
 				if(wirkbestellen[i][j]==1)
 				{
 					char* dessertstring=(char*)malloc(25);strcpy(dessertstring,"\0");
-					char* tmp=(char*)malloc(25); tmp=strcpy(tmp,bestelldaten[i][j]);
+					char* tmp=(char*)malloc(150); tmp=strcpy(tmp,bestelldaten[i][j]);
 					tmp=cut2(tmp,"_",2,3);
+					tmp=cut2(tmp,"=",1,1);
 					strcpy(dessertstring,"fld_");
 					strcat(dessertstring,tmp);
 					strcat(dessertstring,"_4");
 					find(menufilename,dessertstring);
-					if(find("findoutput","gruen pointer")==0)
+					if((find("findoutput","gruen pointer")==0)) //&& (strlen(cut2(frstln(tmp,150,"findoutput"),">",2,2))>0))
 					{
 						strcat(postfield,"&");
 						strcat(postfield,dessertstring);
@@ -1391,6 +1416,8 @@ void sendbestellung()//hier muss sowohl das Senden der daten für die Woche, als
 			//--------------------------------------------------------------------------------------------
 			//Die erste Bestätigung herunterladen
 			//--------------------------------------------------------------------------------------------
+			printf("Der erste postcode: %s",postfield);
+			fflush(stdout);
 			strcpy(menufilename,"bstst"); //Das soll die erste Bestellbestätigung werden;
 			menunumber[0]=48+i; menunumber[1]='\0';
 			strcat(menufilename,menunumber); strcat(menufilename,"\0");
@@ -1399,7 +1426,7 @@ void sendbestellung()//hier muss sowohl das Senden der daten für die Woche, als
 			CURL *hnd = curl_easy_init();
 			curl_easy_setopt(hnd, CURLOPT_WRITEDATA, bestbest1[i]);
 			curl_easy_setopt(hnd, CURLOPT_INFILESIZE_LARGE, -1);
-			curl_easy_setopt(hnd, CURLOPT_URL, "http://www.dussmann-lpf.rcs.de/index.php?m=150;0;1;3");
+			curl_easy_setopt(hnd, CURLOPT_URL, "http://dussmann-lpf.rcs.de/index.php?m=150;0;1;3");
 			curl_easy_setopt(hnd, CURLOPT_PROXY, NULL);
 			curl_easy_setopt(hnd, CURLOPT_PROXYUSERPWD, NULL); 
 			curl_easy_setopt(hnd, CURLOPT_POSTFIELDS, postfield);
@@ -1420,7 +1447,7 @@ void sendbestellung()//hier muss sowohl das Senden der daten für die Woche, als
 			 *      nicht mehr als hidden-zeugs abspeichern
 			 * um die stelle für schneiden wegen bestellenfoo zu ermitteln einfach ein strstr(zeile,"best_") machen
 			 */
-			char* actionurl=(char*)malloc(120); strcpy(actionurl,"http://www.dussmann-lpf.rcs.de/");
+			char* actionurl=(char*)malloc(120); strcpy(actionurl,"http://dussmann-lpf.rcs.de/index.php?m=150;0;1;3&a=akt_bestellen&");
 			char** newhidden;
 			int lnstillpreis=0;
 			FILE* hiddenposts;
@@ -1431,6 +1458,7 @@ void sendbestellung()//hier muss sowohl das Senden der daten für die Woche, als
 			fgets(tmp, 150,hiddenposts);
 			fclose(hiddenposts);
 			tmp=cut2(tmp,"\"",2,2);
+			tmp=cut2(tmp,";",6,6);
 			strcat(actionurl,tmp);
 			strcat(actionurl,"\0");
 			find(menufilename,"\"hidden");
@@ -1459,10 +1487,12 @@ void sendbestellung()//hier muss sowohl das Senden der daten für die Woche, als
 					strcpy(newhidden[k],tmp);
 					strcat(newhidden[k],"=");
 					tmp2=cut2(tmp2,"\"",6,6);
+					strcat(newhidden[k],tmp2);
 					strcat(newhidden[k],"\0");
 				} else if(strstr(tmp,"guthaben")!=NULL)
 				{
 					strcpy(newhidden[k],"guthaben=");
+					strcat(newhidden[k],"\0");
 				}
 			}
 			
@@ -1481,7 +1511,7 @@ void sendbestellung()//hier muss sowohl das Senden der daten für die Woche, als
 			// Nun kommt das Senden dieses postfields an die zuvor ermittelte action-url
 			// gespeichert wird in einer extra-Datei
 			//-------------------------------------------------------------------------------------
-			strcpy(menufilename,"bstbt"); //Das soll die erste Bestellbestätigung werden;
+			strcpy(menufilename,"bstbt"); //Das soll die zweite Bestellbestätigung werden;
 			menunumber[0]=48+i; menunumber[1]='\0';
 			strcat(menufilename,menunumber); strcat(menufilename,"\0");
 			bestbest2[i]=fopen(menufilename,"w");
@@ -1493,16 +1523,26 @@ void sendbestellung()//hier muss sowohl das Senden der daten für die Woche, als
 			curl_easy_setopt(hnd2, CURLOPT_PROXY, NULL);
 			curl_easy_setopt(hnd2, CURLOPT_PROXYUSERPWD, NULL); 
 			curl_easy_setopt(hnd2, CURLOPT_POSTFIELDS, postfield);
+			curl_easy_setopt(hnd2, CURLOPT_REFERER, "http://dussmann-lpf.rcs.de/index.php?m=150;0;1;3");
 			curl_easy_setopt(hnd2, CURLOPT_USERAGENT, "Mozilla/5.0 (X11; U; Linux i686; de; rv:1.9.2.12) Gecko/20101027 Firefox/3.6.12");
 			curl_easy_setopt(hnd2, CURLOPT_COOKIEFILE, "Cookiedatei");
 			curl_easy_setopt(hnd2, CURLOPT_COOKIEJAR, NULL);
 			ret2 = curl_easy_perform(hnd2);
 			curl_easy_cleanup(hnd2);
 			fclose(bestbest2[i]);
-			
+			fclose(hiddenposts);
+			free(actionurl);
+			free(newhidden);
+			free(tmp);
+			free(tmp2);
+			//puts("liesmich");
+			printf("Das ist der zweite Postcode: %s",postfield);
 		}	
+		
 	} //STOPP, diese for-schleife darf ich nicht verlassen, da das postfield kein array ist!!
-	
+	free(postfield);
+	free(menunumber);
+	free(menufilename);
 }
 
 
