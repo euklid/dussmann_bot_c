@@ -1153,7 +1153,9 @@ void getratingandbestelldaten()
 							strcpy(hackstring[numwords-1],"\0");
 							strcpy(hackstring[numwords-2],"\0");
 						}
-					}
+					} //TODO: 	new tactic is needed! BEFORE hacking the string into pieces, delete all <br /> and &amp; 's since they then appear as coherent string.
+					  // 		therefore wie seek if there are any of those and then we remove them recursively! --> new function in function. with strstr find first appearance and then shift all cha
+					  //		characters 5 fields left, in both cases, hell yeah!
 					for(int k=0;k<numwords;k++) //nun die "&amp;" s entfernen
 					{
 						if(strstr(hackstring[k],"&amp;")!=NULL)
