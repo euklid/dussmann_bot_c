@@ -992,7 +992,7 @@ void getdatensatz()
 			wocheplustagplusdaten[i][j]=(char**)calloc(9,sizeof(char*));
 			for(int k=0;k<9;k++) 
 			{
-				wocheplustagplusdaten[i][j][k]=(char*)malloc(75*sizeof(char));
+				wocheplustagplusdaten[i][j][k]=(char*)malloc(150*sizeof(char));
 				strcpy(wocheplustagplusdaten[i][j][k],"\0");
 			}
 		}
@@ -1094,7 +1094,7 @@ void getratingandbestelldaten()
 				for(int p=0;p<3;p++)
 				{
 					if(strlen(wocheplustagplusdaten[i][j][3*p])==0) continue; //DAS IST SCHWACHSINN!!! //Dadurch bleiben die Rating für ein leeres Menü 2 0
-					char* tmp=(char*)malloc(100);
+					char* tmp=(char*)malloc(150);
 					char* pch;
 					int numwords=1;
 					tmp=strcpy(tmp,wocheplustagplusdaten[i][j][0+3*p]);
@@ -1323,7 +1323,7 @@ void sendbestellung()//hier muss sowohl das Senden der daten für die Woche, als
 	for(int i=0;i<anzwoche;i++) //Das ist doof, wir sollten bereits hier schon unterscheiden, ob für die Woche überhaupt bestellt werden soll :DONE Done
 	{
 		bestellsumme=0;
-		for(int j=0;j<anzwoche;j++) bestellsumme+=wirkbestellen[i][j];
+		for(int j=0;j<7;j++) bestellsumme+=wirkbestellen[i][j]; //hier war ein ganz dummer fehler!
 		
 		if(bestellsumme>0)
 		{
