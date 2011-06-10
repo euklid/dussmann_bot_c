@@ -55,6 +55,7 @@ char* frstnchr(char* input, int n);
 //char* cut(char* input, const char* delim, int fieldstart, int fieldstop);
 char* cut2(char* inputstring, char* delim, int fieldstart, int fieldstop);
 int find(const char inputfile[], const char searchstring[], int linesafter = 0);
+char* removeformattingsigns(char* input);
 char *strlwr(char *s);
 FILE* findfile;
 int startwoche=0, anzwoche=0;
@@ -593,6 +594,93 @@ int find(const char inputfile[], const char searchstring[], int linesafter)
 
 }
 
+char* removeformattingsigns(char* input)
+{ 	//Attention: string is not \0 terminated. A \0 has to be added after \n!!!
+	char* output;
+	int charnum=0;
+	while(input[charnum]!='\n') charnum++;
+	charnum++;
+	output=(char*)malloc(1+charnum*sizeof(char));
+	output=strcpy(output,input);
+	output[charnum]='\0'; //<-- now output is '\0' terminated
+	if((strstr(input,"<br />")==NULL) && (strstr(input,"&amp;")==NULL) && (strstr(input,"&quot;")==NULL))
+	{
+		free(output);
+		return input;
+	}
+	while(strstr(output,"<br />")!=NULL)
+	{
+		int position=0;
+		char* pointchar;
+		pointchar=strstr(output,"<br />");
+		while(&output[position]!=pointchar)
+		{
+			position++;
+		}//<-- get absolute position in string where first occurence found
+		output[position]=' '; position++;//< wird zum Leerzeichen, von nun an werden alle Zellen um 5 vorgerückt, bis man das Ende des Strings erreicht hat
+		while(position+4!=strlen(output))
+		{
+			strcpy(output[position],output[position+5]);
+			position++;
+		}
+		while(position<strlen(output))
+		{
+			output[position]='\0';
+			position++;
+		}
+		free(pointchar);		
+	}
+	
+	while(strstr(output,"&amp;")!=NULL)
+	{
+		int position=0;
+		char* pointchar;
+		pointchar=strstr(output,"<br />");
+		while(&output[position]!=pointchar)
+		{
+			position++;
+		}//<-- get absolute position in string where first occurence found
+		output[position]=' '; position++;//< wird zum Leerzeichen, von nun an werden alle Zellen um 5 vorgerückt, bis man das Ende des Strings erreicht hat
+		while(position+4 != strlen(output))
+		{
+			output[position]=output[position+5];
+			position++;
+		}
+		while(position<strlen(output))
+		{
+			output[position]='\0';
+			position++;
+		}
+		free(pointchar);		
+	}
+	
+	while(strstr(output,"&quot;")==NULL)
+	{
+		int position=0;
+		char* pointchar;
+		pointchar=strstr(output,"<br />");
+		while(&output[position]!=pointchar)
+		{
+			position++;
+		}//<-- get absolute position in string where first occurence found
+		output[position]=' '; position++;//< wird zum Leerzeichen, von nun an werden alle Zellen um 5 vorgerückt, bis man das Ende des Strings erreicht hat
+		while(position+5!=strlen(output))
+		{
+			output[position]=output[position+6];
+			position++;
+		}
+		while(position<strlen(output))
+		{
+			output[position]='\0';
+			position++;
+		}
+		free(pointchar);		
+	}
+	strcpy(input, output);
+	free(output);
+	return input;
+}
+
 int loginandcookie(char* userid, char* passwd)
 {
 	FILE* essen;
@@ -1107,7 +1195,8 @@ void getratingandbestelldaten()
 					numwords--;
 					hackstring=(char**)calloc(numwords,sizeof(char*));
 					for(int k=0;k<numwords;k++) {hackstring[k]=(char*)malloc(70*sizeof(char)); strcpy(hackstring[k],"\0");}
-					tmp=strcpy(tmp, wocheplustagplusdaten[i][j][0+3*p]);
+					tmp=strcpy(tmp, wocheplustagplusdaten[i][j][0+3*p]); //<-- hier muss jetzt das mit den &amp; s und so weiter rein, damit das erst später zerhackt wird. Auch sollte immer noch ein Leerzeichen für ein Entferntes Ding reingebracht werden. Das wird ja eh wieder DANACH zur Trennung entfernt.
+					tmp=removeformattingsigns(tmp);
 					pch=strtok(tmp," ,.1234567890");
 					strcpy(hackstring[0],pch);
 					//hackstring[k]=strlwr(hackstring[0]); hier noch nicht, wegen der pseudosubstantiven adjektive (Szegediner Gulasch)
@@ -1129,7 +1218,7 @@ void getratingandbestelldaten()
 							strcpy(hackstring[numwords-1],"\0");
 							//strcpy(hackstring[k],"\0"); <-- Das war doof, nun sind alle hackstrings "hintereinander", endene "\0"-en !!
 						} //Bindestriche zusammenführen
-					} //TODO: " im " , " nach " nicht löschen, sowie die substantivierten Adjektive. diese Bindewörter für concatenation benützen
+					} //DONE: " im " , " nach " nicht löschen, sowie die substantivierten Adjektive. diese Bindewörter für concatenation benützen
 					for(int k=1;k<numwords-1;k++) //jetzt kommt die Entfernung von "mit", "dazu", "und", "an"
 					{
 						if((strlen(hackstring[k])<=4) && (hackstring[k][0]!='\0'))
