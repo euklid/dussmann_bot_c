@@ -594,7 +594,7 @@ int find(const char inputfile[], const char searchstring[], int linesafter)
 
 }
 
-char* removeformattingsigns(char* input)
+char* removeformattingsigns(char* input) //<-- remove html escape sequences
 { 	//Attention: string is not \0 terminated. A \0 has to be added after \n!!!
 	char* output;
 	int charnum=0;
