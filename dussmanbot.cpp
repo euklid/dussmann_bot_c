@@ -597,8 +597,11 @@ int find(const char inputfile[], const char searchstring[], int linesafter)
 char* removeformattingsigns(char* input) //<-- remove html escape sequences
 { 	//Attention: string is not \0 terminated. A \0 has to be added after \n!!!
 	char* output;
-	int charnum=0;
-	while(input[charnum]!='\n') charnum++;
+	int charnum = 0 ;
+	while(input[charnum]!='\n') 
+	{
+		charnum++;
+	}
 	charnum++;
 	output=(char*)malloc(1+charnum*sizeof(char));
 	output=strcpy(output,input);
@@ -618,63 +621,60 @@ char* removeformattingsigns(char* input) //<-- remove html escape sequences
 			position++;
 		}//<-- get absolute position in string where first occurence found
 		output[position]=' '; position++;//< wird zum Leerzeichen, von nun an werden alle Zellen um 5 vorgerückt, bis man das Ende des Strings erreicht hat
-		while(position+4!=strlen(output))
+		while(position+4!=charnum)
 		{
-			strcpy(output[position],output[position+5]);
+			output[position]=output[position+5];
 			position++;
 		}
-		while(position<strlen(output))
+		while(position<charnum)
 		{
 			output[position]='\0';
 			position++;
-		}
-		free(pointchar);		
+		}		
 	}
 	
 	while(strstr(output,"&amp;")!=NULL)
 	{
 		int position=0;
 		char* pointchar;
-		pointchar=strstr(output,"<br />");
+		pointchar=strstr(output,"&amp;");
 		while(&output[position]!=pointchar)
 		{
 			position++;
 		}//<-- get absolute position in string where first occurence found
 		output[position]=' '; position++;//< wird zum Leerzeichen, von nun an werden alle Zellen um 5 vorgerückt, bis man das Ende des Strings erreicht hat
-		while(position+4 != strlen(output))
+		while(position+3 != charnum)
+		{
+			output[position]=output[position+4];
+			position++;
+		}
+		while(position<charnum)
+		{
+			output[position]='\0';
+			position++;
+		}		
+	}
+	
+	while(strstr(output,"&quot;")!=NULL)
+	{
+		int position=0;
+		char* pointchar;
+		pointchar=strstr(output,"&quot;");
+		while(&output[position]!=pointchar)
+		{
+			position++;
+		}//<-- get absolute position in string where first occurence found
+		output[position]=' '; position++;//< wird zum Leerzeichen, von nun an werden alle Zellen um 5 vorgerückt, bis man das Ende des Strings erreicht hat
+		while(position+4!=charnum)
 		{
 			output[position]=output[position+5];
 			position++;
 		}
-		while(position<strlen(output))
+		while(position<charnum)
 		{
 			output[position]='\0';
 			position++;
-		}
-		free(pointchar);		
-	}
-	
-	while(strstr(output,"&quot;")==NULL)
-	{
-		int position=0;
-		char* pointchar;
-		pointchar=strstr(output,"<br />");
-		while(&output[position]!=pointchar)
-		{
-			position++;
-		}//<-- get absolute position in string where first occurence found
-		output[position]=' '; position++;//< wird zum Leerzeichen, von nun an werden alle Zellen um 5 vorgerückt, bis man das Ende des Strings erreicht hat
-		while(position+5!=strlen(output))
-		{
-			output[position]=output[position+6];
-			position++;
-		}
-		while(position<strlen(output))
-		{
-			output[position]='\0';
-			position++;
-		}
-		free(pointchar);		
+		}		
 	}
 	strcpy(input, output);
 	free(output);
@@ -1186,6 +1186,7 @@ void getratingandbestelldaten()
 					char* pch;
 					int numwords=1;
 					tmp=strcpy(tmp,wocheplustagplusdaten[i][j][0+3*p]);
+					tmp=removeformattingsigns(tmp);
 					pch=strtok(tmp," ,.1234567890");
 					while(pch!=NULL)
 					{
