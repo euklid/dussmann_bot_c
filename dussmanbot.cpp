@@ -1186,7 +1186,7 @@ void getratingandbestelldaten()
 					char* pch;
 					int numwords=1;
 					tmp=strcpy(tmp,wocheplustagplusdaten[i][j][0+3*p]);
-					tmp=removeformattingsigns(tmp);
+					tmp=removeformattingsigns(tmp); //must be done to get the correct number of words
 					pch=strtok(tmp," ,.1234567890");
 					while(pch!=NULL)
 					{
