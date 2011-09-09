@@ -1123,7 +1123,7 @@ void getdatensatz()
 				fgets(tmp,300,auflistungen);
 				if(wirkbestellen[i][j%7]==1)
 				{
-					cut2(tmp,">",2,4); //hier muss noch fallunterscheidung wegen \n am ende rein!!!
+					cut2(tmp,">",2,7); //hier muss noch fallunterscheidung wegen \n am ende rein!!!
 					if((tmp[0]=='\n') &&(j<7)) {wirkbestellen[i][j%7]=0; continue;}
 					if((tmp[0]=='\n') && (j/7==1)){continue;} //--> die leeren Menü2s bleiben '\0'
 					strcpy(wocheplustagplusdaten[i][j%7][3*(j/7)],tmp); //Menünamen abspeichern, damit man nach ihm in den folgenden Zeilen suchen kann, damit man die restlichen Daten ermitteln kann
@@ -1244,8 +1244,8 @@ void getratingandbestelldaten()
 							strcpy(hackstring[numwords-2],"\0");
 						}
 					} //TODO: 	new tactic is needed! BEFORE hacking the string into pieces, delete all <br /> and &amp; 's since they then appear as coherent string.
-					  // 		therefore wie seek if there are any of those and then we remove them recursively! --> new function in function. with strstr find first appearance and then shift all cha
-					  //		characters 5 fields left, in both cases, hell yeah!
+					  // 		therefore we seek if there are any of those and then remove them --> new function in function. with strstr find first appearance and then shift all cha
+					  //		characters 5 fields left, in both cases, hell yeah!: DONE
 					for(int k=0;k<numwords;k++) //nun die "&amp;" s entfernen
 					{
 						if(strstr(hackstring[k],"&amp;")!=NULL)
@@ -1636,5 +1636,3 @@ void sendbestellung()//hier muss sowohl das Senden der daten für die Woche, als
 	free(menunumber);
 	free(menufilename);
 }
-
-
