@@ -1094,62 +1094,76 @@ void getdatensatz()
 			strcpy(menufilename,"menu");
 			menunumber[0]=48+i; menunumber[1]='\0';
 			strcat(menufilename,menunumber); strcat(menufilename,"\0");
+			find(menufilename,"<table class=\"splanauflistung\"  summary=\"Speiseplan\">",10);
+			find("findoutput","</th>");
+			int numdays=0;
+			char c;
+			FILE* days;
+			days = fopen("findoutput","r");
+			while((c=fgetc(days))!= EOF )
+			{
+				if(c=='\n') numdays++;
+			}
+			fclose(days);
+			numdays--; //wegen &nbsp;
+			for(int f=numdays;f<7;f++) wirkbestellen[i][f]=0;
+			//--> diese Zeilen jetzt noch einbauen
 			find(menufilename,"class=\" auflistung");
 			FILE* auflistungen;
 			auflistungen=fopen("findoutput","r");
 			char* tmp=(char*)malloc(300);
-			for(int j=0;j<21;j++) //21, weil bis dahin es zum sonntag menü 3 geht
+			for(int j=0;j<numdays*3;j++) //21, weil bis dahin es zum sonntag menü 3 geht //fetter bug, was, wenn speiseplan nur bis freitag geht???!!!
 			{
 				fgets(tmp, 300,auflistungen);
-				if(wirkbestellen[i][j%7]==1)
+				if(wirkbestellen[i][j%numdays]==1)
 				{
 					if(strstr(tmp,"pointer")==NULL) 
 					{
 						
-						wirkbestellen[i][j%7]=0;
+						wirkbestellen[i][j%numdays]=0;
 						continue; //--> Ausschließen des Tages, da dieser schon bestellt ==> alle folgenden unbestellt oder gruen
 					}
 					if(strstr(tmp,"gruen pointer")!=NULL)
 					{
-						wirkbestellen[i][j%7]=0;
+						wirkbestellen[i][j%numdays]=0;
 						continue;
 					}
-					wirkbestellen[i][j%7]=1;
+					wirkbestellen[i][j%numdays]=1;
 				}
 			}
 			rewind(auflistungen);
-			for(int j=0; j<21;j++)
+			for(int j=0; j<numdays*3;j++)
 			{
 				fgets(tmp,300,auflistungen);
-				if(wirkbestellen[i][j%7]==1)
+				if(wirkbestellen[i][j%numdays]==1)
 				{
 					cut2(tmp,">",2,7); //hier muss noch fallunterscheidung wegen \n am ende rein!!!
-					if((tmp[0]=='\n') &&(j<7)) {wirkbestellen[i][j%7]=0; continue;}
-					if((tmp[0]=='\n') && (j/7==1)){continue;} //--> die leeren Menü2s bleiben '\0'
-					strcpy(wocheplustagplusdaten[i][j%7][3*(j/7)],tmp); //Menünamen abspeichern, damit man nach ihm in den folgenden Zeilen suchen kann, damit man die restlichen Daten ermitteln kann
+					if((tmp[0]=='\n') &&(j<numdays)) {wirkbestellen[i][j%numdays]=0; continue;}
+					if((tmp[0]=='\n') && (j/numdays==1)){continue;} //--> die leeren Menü2s bleiben '\0'
+					strcpy(wocheplustagplusdaten[i][j%numdays][3*(j/numdays)],tmp); //Menünamen abspeichern, damit man nach ihm in den folgenden Zeilen suchen kann, damit man die restlichen Daten ermitteln kann
 					//printf("%i %i %s",i,j,wocheplustagplusdaten[i][j%7][3*(j/7)]); //TODO: '\n' am Ende der Zeile löschen ('\r' auch(?) )
 				}
 			}
 			//free(tmp);//Nun weiß man die Tage, für welche MENÜS bestellt müssen, man weiß nicht, wo Desserts bestellt werden müssen 
 			fclose(auflistungen);
 			FILE* essendata;
-			for(int j=0; j<21;j++)
+			for(int j=0; j<numdays*3;j++)
 			{
-				if(wirkbestellen[i][j%7]==1)
+				if(wirkbestellen[i][j%numdays]==1)
 				{
-					if(strlen(wocheplustagplusdaten[i][j%7][3*(j/7)])>2) //--> Ausschließen, dass für ein leeres Menü 2 Daten gesammelt werden sollen
+					if(strlen(wocheplustagplusdaten[i][j%numdays][3*(j/numdays)])>2) //--> Ausschließen, dass für ein leeres Menü 2 Daten gesammelt werden sollen
 					{
-						find(menufilename,wocheplustagplusdaten[i][j%7][3*(j/7)],2); //Suche nach Zeile über den Essensnamen
+						find(menufilename,wocheplustagplusdaten[i][j%numdays][3*(j/numdays)],2); //Suche nach Zeile über den Essensnamen
 						find("findoutput","<input type=\"radio\" name=\"rad_");
 						essendata=fopen("findoutput","r");
 						fgets(tmp, 300, essendata);
 						cut2(tmp,"\"",4,4);
-						strcpy(wocheplustagplusdaten[i][j%7][3*(j/7)+1],tmp);
+						strcpy(wocheplustagplusdaten[i][j%numdays][3*(j/numdays)+1],tmp);
 						//printf("%s",wocheplustagplusdaten[i][j%7][3*(j/7)+1]);
 						rewind(essendata);
 						fgets(tmp,300, essendata);
 						cut2(tmp,"\"",6,6);
-						strcpy(wocheplustagplusdaten[i][j%7][3*(j/7)+2], tmp);
+						strcpy(wocheplustagplusdaten[i][j%numdays][3*(j/numdays)+2], tmp);
 						//wocheplustagplusdaten[i][j%7][3*(j/7)+2][strlen(wocheplustagplusdaten[i][j%7][3*(j/7)+2])-1]='\0';
 						//printf("%s",wocheplustagplusdaten[i][j%7][3*(j/7)+2]);
 						fclose(essendata);	
