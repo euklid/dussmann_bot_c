@@ -1,0 +1,13 @@
+This is a command line program for ordering your food at http://www.dussmann-lpf.rcs.de . You have to
+be a student at Landesschule Pforta in Saxony-Anhalt to have an account for this page. 
+If anybody wants to improve this program, he can have my datas so that he can test it. Please restore
+my orderings after experimentation.
+For compiling you need the libcurl from curl.haxx.se . You can download it from http://curl.haxx.se/download.html .
+The installation path in my case is /usr/include/curl and the flag it -lcurl .
+compiling under Windows: -llibcurl and the .dll's have to be put into the folder where to compiled pro
+gram is.
+
+For execution under linux you need curl. Download it from the page above or install it from the repositories of your distribution.
+
+The program asks you for you userid and your password. Both are numbers with four digits.
+
