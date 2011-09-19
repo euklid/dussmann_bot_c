@@ -10,4 +10,6 @@ gram is.
 For execution under linux you need curl. Download it from the page above or install it from the repositories of your distribution.
 
 The program asks you for you userid and your password. Both are numbers with four digits.
-
+Then you are asked to choose the weeks you want to order and if you want do order for all days or not for all. If not, you have to choose the days.
+Then it requests a rating for a part of food if this ingredient is not already in your ratings file. Please rate from 1 to 10 in integers.
+Then all the magic happens and your food will be ordered.
